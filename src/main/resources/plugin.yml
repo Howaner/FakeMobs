@@ -1,0 +1,32 @@
+name: FakeMobs
+version: 1.0
+author: Howaner
+description: You can spawn Fake Mobs
+depend: [ProtocolLib]
+main: de.howaner.FakeMobs.FakeMobsPlugin
+
+commands:
+  FakeMob:
+    description: FakeMobs Manage
+    usage: "§4Bad Syntax. Type /FakeMobs help for Help!"
+permissions:
+  FakeMobs.create:
+    description: Spawn Fake Mobs
+    default: op
+  FakeMobs.select:
+    description: Select Fake Mobs
+    default: op
+  FakeMobs.teleport:
+    description: Teleport a Fake Mob
+    default: op
+  FakeMobs.remove:
+    description: Remove Fake Mobs
+    default: op
+  FakeMobs.*:
+    description: All Permissions for FakeMobs
+    children:
+      FakeMobs.create: true
+      FakeMobs.select: true
+      FakeMobs.teleport: true
+      FakeMobs.remove: true
+    default: op
