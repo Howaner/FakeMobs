@@ -22,6 +22,9 @@ permissions:
   FakeMobs.sitting:
     description: Can sit the Fake Mob
     default: op
+  FakeMobs.look:
+    description: Can change the look Function of a Mob
+    default: op
   FakeMobs.teleport:
     description: Teleport a Fake Mob
     default: op
@@ -37,6 +40,7 @@ permissions:
       FakeMobs.select: true
       FakeMobs.name: true
       FakeMobs.sitting: true
+      FakeMobs.look: true
       FakeMobs.teleport: true
       FakeMobs.remove: true
       FakeMobs.help: true
