@@ -20,9 +20,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.Animals;
 import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -166,6 +164,9 @@ public class FakeMobsPlugin extends JavaPlugin {
 					Float.parseFloat(section.getString("Pitch")));
 			EntityType type = EntityType.valueOf(section.getString("Type").toUpperCase());
 			FakeMob mob = new FakeMob(id, loc, type);
+			if (section.contains("Name") && section.getString("Name").length() <= 16)
+				mob.setCustomName(section.getString("Name"));
+			mob.setSitting(section.getBoolean("Sitting"));
 			this.mobs.put(id, mob);
 		}
 		
@@ -184,6 +185,9 @@ public class FakeMobsPlugin extends JavaPlugin {
 			section.set("Yaw", mob.getLocation().getYaw());
 			section.set("Pitch", mob.getLocation().getPitch());
 			section.set("Type", mob.getType().name());
+			if (mob.getCustomName() != null)
+				section.set("Name", mob.getCustomName());
+			section.set("Sitting", mob.isSitting());
 		}
 		
 		try {

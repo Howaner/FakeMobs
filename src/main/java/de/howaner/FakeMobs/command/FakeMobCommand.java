@@ -77,6 +77,58 @@ public class FakeMobCommand implements CommandExecutor {
 				player.sendMessage(ChatColor.GREEN + "Click on the FakeMob!");
 			}
 			return true;
+		} else if (args[0].equalsIgnoreCase("name")) {
+			if (args.length < 2) return false;
+			if (!player.hasPermission("FakeMobs.name")) {
+				player.sendMessage(ChatColor.RED + "No permission!");
+				return true;
+			}
+			FakeMob mob = Cache.selectedMobs.get(player);
+			if (mob == null) {
+				player.sendMessage(ChatColor.RED + "You haven't a Selection!");
+				return true;
+			}
+			StringBuilder textBuilder = new StringBuilder();
+			for (int i = 1; i < args.length; i++) {
+				if (i != 1) textBuilder.append(" ");
+				textBuilder.append(args[i]);
+			}
+			String text = ChatColor.translateAlternateColorCodes('&', textBuilder.toString());
+			if (text.length() > 16) {
+				player.sendMessage(ChatColor.RED + "Name too long!");
+				return true;
+			}
+			if (text.equalsIgnoreCase("none")) {
+				mob.setCustomName(null);
+				mob.updateCustomName();
+				player.sendMessage(ChatColor.GREEN + "Mob Name deleted!");
+			} else {
+				mob.setCustomName(text);
+				mob.updateCustomName();
+				player.sendMessage(ChatColor.GREEN + "Mob Name set to " + ChatColor.GRAY + text + ChatColor.GREEN + "!");
+			}
+			this.plugin.saveMobsFile();
+			return true;
+		} else if (args[0].equalsIgnoreCase("sitting")) {
+			if (args.length < 1) return false;
+			if (!player.hasPermission("FakeMobs.sitting")) {
+				player.sendMessage(ChatColor.RED + "No permission!");
+				return true;
+			}
+			FakeMob mob = Cache.selectedMobs.get(player);
+			if (mob == null) {
+				player.sendMessage(ChatColor.RED + "You haven't a Selection!");
+				return true;
+			}
+			if (mob.getType() != EntityType.OCELOT && mob.getType() != EntityType.WOLF) {
+				player.sendMessage(ChatColor.RED + "This is not a pet!");
+				return true;
+			}
+			mob.setSitting(!mob.isSitting());
+			mob.updateCustomName();
+			this.plugin.saveMobsFile();
+			player.sendMessage(ChatColor.GREEN + "Sitting Status changed: " + ChatColor.GRAY + ((mob.isSitting()) ? "on" : "off"));
+			return true;
 		} else if (args[0].equalsIgnoreCase("teleport")) {
 			if (args.length != 1) return false;
 			if (!player.hasPermission("FakeMobs.teleport")) {

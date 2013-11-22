@@ -36,7 +36,7 @@ public class ProtocolListener implements PacketListener {
 			
 			if (id < 0) return;
 			FakeMob mob = this.plugin.getMob(id);
-			if (mob == null) return;
+			if (mob == null || player.getWorld() != mob.getWorld()) return;
 			
 			if (player.isDead()) return;
 			if (player.getWorld() != mob.getWorld() ||

@@ -13,10 +13,11 @@ import org.bukkit.entity.Player;
 
 public class FakeMob {
 	private final int id;
-	private String name;
+	private String name = null;
 	private Location loc;
 	private int health = 20;
 	private EntityType type;
+	private boolean sitting = false;
 	
 	public FakeMob(int id, Location loc, EntityType type) {
 		this.id = id;
@@ -34,7 +35,7 @@ public class FakeMob {
 		packet.getIntegers().write(0, this.getEntityId());
 		packet.getIntegers().write(1, (int) this.type.getTypeId()); //Id
 		packet.getIntegers().write(2, (int) Math.floor(this.loc.getX() * 32D)); //X
-		packet.getIntegers().write(3, (int) Math.floor(this.loc.getY() * 32D)); //Y
+		packet.getIntegers().write(3, (int) Math.floor((this.loc.getY() + 1D) * 32D)); //Y
 		packet.getIntegers().write(4, (int) Math.floor(this.loc.getZ() * 32D)); //Z
 		
 		/*packet.getIntegers().write(5, 0) //Vector
@@ -43,9 +44,38 @@ public class FakeMob {
 		
 		packet.getBytes().write(0, (byte)(int)(this.loc.getYaw() * 256.0F / 360.0F)); //Yaw
 		packet.getBytes().write(1, (byte)(int)(this.loc.getPitch() * 256.0F / 360.0F)); //Pitch
-		packet.getBytes().write(2, (byte)(int)(this.loc.getPitch() * 256.0F / 360.0F)); //Head
+		packet.getBytes().write(2, (byte)(int)(this.loc.getYaw() * 256.0F / 360.0F)); //Head
 		
-		packet.getDataWatcherModifier().write(0, this.getDefaultWatcher());
+		WrappedDataWatcher watcher = this.getDefaultWatcher();
+		if (this.name != null) {
+			watcher.setObject(10, (String) this.name);
+			watcher.setObject(11, (byte) 1);
+		}
+		if (this.sitting)
+			watcher.setObject(16, (byte) 0x1);
+		
+		packet.getDataWatcherModifier().write(0, watcher);
+		
+		try {
+			FakeMobsPlugin.getPlugin().getProtocolManager().sendServerPacket(player, packet);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void sendMetaPacket(Player player) {
+		PacketContainer packet = new PacketContainer(Packets.Server.ENTITY_METADATA);
+		
+		WrappedDataWatcher watcher = this.getDefaultWatcher();
+		if (this.name != null) {
+			watcher.setObject(10, (String) this.name);
+			watcher.setObject(11, (byte) 1);
+		}
+		if (this.sitting)
+			watcher.setObject(16, (byte) 0x1);
+		
+		packet.getIntegers().write(0, this.getEntityId());
+		packet.getWatchableCollectionModifier().write(0, watcher.getWatchableObjects());
 		
 		try {
 			FakeMobsPlugin.getPlugin().getProtocolManager().sendServerPacket(player, packet);
@@ -59,7 +89,7 @@ public class FakeMob {
 		
 		packet.getIntegers().write(0, this.getEntityId()); //Id
 		packet.getIntegers().write(1, (int) Math.floor(this.loc.getX() * 32)); //X
-		packet.getIntegers().write(2, (int) Math.floor(this.loc.getY() * 32)); //Y
+		packet.getIntegers().write(2, (int) Math.floor((this.loc.getY() + 1D) * 32)); //Y
 		packet.getIntegers().write(3, (int) Math.floor(this.loc.getZ() * 32)); //Z
 		
 		packet.getBytes().write(0, (byte)(int)(this.loc.getYaw() * 256.0F / 360.0F)); //Yaw
@@ -95,7 +125,7 @@ public class FakeMob {
 		return this.id;
 	}
 	
-	public String getName() {
+	public String getCustomName() {
 		return this.name;
 	}
 	
@@ -115,6 +145,10 @@ public class FakeMob {
 		return this.type;
 	}
 	
+	public boolean isSitting() {
+		return this.sitting;
+	}
+	
 	public void setLocation(Location loc) {
 		this.loc = loc;
 	}
@@ -123,8 +157,13 @@ public class FakeMob {
 		this.health = health;
 	}
 	
-	public void setName(String name) {
+	public void setCustomName(String name) {
 		this.name = name;
+	}
+	
+	public void setSitting(boolean sitting) {
+		if (this.type != EntityType.OCELOT && this.type != EntityType.WOLF) return;
+		this.sitting = sitting;
 	}
 	
 	public void teleport(Location loc) {
@@ -132,6 +171,12 @@ public class FakeMob {
 		for (Player player : Bukkit.getOnlinePlayers())
 			if (player.getWorld() == this.getWorld())
 				this.sendPositionPacket(player);
+	}
+	
+	public void updateCustomName() {
+		for (Player player : Bukkit.getOnlinePlayers())
+			if (player.getWorld() == this.getWorld())
+				this.sendMetaPacket(player);
 	}
 	
 }
