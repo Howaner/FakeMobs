@@ -18,6 +18,7 @@ public class FakeMob {
 	private int health = 20;
 	private EntityType type;
 	private boolean sitting = false;
+	private WrappedDataWatcher watcherCache = null;
 	
 	public FakeMob(int id, Location loc, EntityType type) {
 		this.id = id;
@@ -114,11 +115,12 @@ public class FakeMob {
 	}
 	
 	public WrappedDataWatcher getDefaultWatcher() {
-		Entity entity = this.getWorld().spawnEntity(new Location(this.getWorld(), 0, 256, 0), type);
-		WrappedDataWatcher watcher = WrappedDataWatcher.getEntityWatcher(entity).deepClone();
-		
-		entity.remove();
-		return watcher;
+		if (this.watcherCache == null) {
+			Entity entity = this.getWorld().spawnEntity(new Location(this.getWorld(), 0, 256, 0), type);
+			this.watcherCache = WrappedDataWatcher.getEntityWatcher(entity).deepClone();
+			entity.remove();
+		}
+		return this.watcherCache;
 	}
 	
 	public int getId() {
