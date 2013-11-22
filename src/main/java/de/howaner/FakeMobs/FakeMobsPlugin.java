@@ -9,6 +9,7 @@ import de.howaner.FakeMobs.listener.MobListener;
 import de.howaner.FakeMobs.listener.ProtocolListener;
 import de.howaner.FakeMobs.util.Cache;
 import de.howaner.FakeMobs.util.FakeMob;
+import de.howaner.FakeMobs.util.LookUpdate;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -45,6 +46,8 @@ public class FakeMobsPlugin extends JavaPlugin {
 			for (Player player : Bukkit.getOnlinePlayers())
 				if (mob.getWorld() == player.getWorld())
 					mob.sendSpawnPacket(player);
+		
+		Bukkit.getScheduler().scheduleAsyncRepeatingTask(this, new LookUpdate(this), 5L, 5L);
 		
 		log.info("Plugin enabled!");
 	}
@@ -167,6 +170,7 @@ public class FakeMobsPlugin extends JavaPlugin {
 			if (section.contains("Name") && section.getString("Name").length() <= 16)
 				mob.setCustomName(section.getString("Name"));
 			mob.setSitting(section.getBoolean("Sitting"));
+			mob.setPlayerLook(section.getBoolean("PlayerLook"));
 			this.mobs.put(id, mob);
 		}
 		
@@ -188,6 +192,7 @@ public class FakeMobsPlugin extends JavaPlugin {
 			if (mob.getCustomName() != null)
 				section.set("Name", mob.getCustomName());
 			section.set("Sitting", mob.isSitting());
+			section.set("PlayerLook", mob.isPlayerLook());
 		}
 		
 		try {

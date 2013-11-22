@@ -133,6 +133,21 @@ public class FakeMobCommand implements CommandExecutor {
 			this.plugin.saveMobsFile();
 			player.sendMessage(ChatColor.GREEN + "Sitting Status changed: " + ChatColor.GRAY + ((mob.isSitting()) ? "on" : "off"));
 			return true;
+		} else if (args[0].equalsIgnoreCase("look")) {
+			if (args.length < 1) return false;
+			if (!player.hasPermission("FakeMobs.look")) {
+				player.sendMessage(ChatColor.RED + "No permission!");
+				return true;
+			}
+			FakeMob mob = Cache.selectedMobs.get(player);
+			if (mob == null) {
+				player.sendMessage(ChatColor.RED + "You haven't a Selection!");
+				return true;
+			}
+			mob.setPlayerLook(!mob.isPlayerLook());
+			this.plugin.saveMobsFile();
+			player.sendMessage(ChatColor.GREEN + "Player Look: " + ChatColor.GRAY + ((mob.isPlayerLook()) ? "on" : "off"));
+			return true;
 		} else if (args[0].equalsIgnoreCase("teleport")) {
 			if (args.length != 1) return false;
 			if (!player.hasPermission("FakeMobs.teleport")) {
@@ -176,6 +191,7 @@ public class FakeMobCommand implements CommandExecutor {
 			player.sendMessage(ChatColor.GRAY + "/FakeMob select " + ChatColor.RED + "-- " + ChatColor.WHITE + "Select a Fakemob");
 			player.sendMessage(ChatColor.GRAY + "/FakeMob name <Name/none> " + ChatColor.RED + "-- " + ChatColor.WHITE + "Give the Fakemob a name");
 			player.sendMessage(ChatColor.GRAY + "/FakeMob sitting " + ChatColor.RED + "-- " + ChatColor.WHITE + "Change the Sitting state of a pet (Wolf/Ocelot)");
+			player.sendMessage(ChatColor.GRAY + "/FakeMob look " + ChatColor.RED + "-- " + ChatColor.WHITE + "Enable/Disable the Players Look");
 			player.sendMessage(ChatColor.GRAY + "/FakeMob teleport " + ChatColor.RED + "-- " + ChatColor.WHITE + "Teleport a Fakemob to you");
 			player.sendMessage(ChatColor.GRAY + "/FakeMob remove " + ChatColor.RED + "-- " + ChatColor.WHITE + "Remove a Fakemob");
 			return true;

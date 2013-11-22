@@ -4,6 +4,8 @@ import com.comphenix.protocol.Packets;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 import de.howaner.FakeMobs.FakeMobsPlugin;
+import java.util.ArrayList;
+import java.util.List;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -18,6 +20,7 @@ public class FakeMob {
 	private int health = 20;
 	private EntityType type;
 	private boolean sitting = false;
+	private boolean playerLook = false;
 	private WrappedDataWatcher watcherCache = null;
 	
 	public FakeMob(int id, Location loc, EntityType type) {
@@ -85,6 +88,33 @@ public class FakeMob {
 		}
 	}
 	
+	public void sendLookPacket(Player player, Location point) {
+		double xDiff = point.getX() - this.loc.getX();
+		double yDiff = point.getY() - this.loc.getY();
+		double zDiff = point.getZ() - this.loc.getZ();
+		double DistanceXZ = Math.sqrt(xDiff * xDiff + zDiff * zDiff);
+		double DistanceY = Math.sqrt(DistanceXZ * DistanceXZ + yDiff * yDiff);
+		double newYaw = Math.acos(xDiff / DistanceXZ) * 180.0D / 3.141592653589793D;
+		double newPitch = Math.acos(yDiff / DistanceY) * 180.0D / 3.141592653589793D - 90.0D;
+		if (zDiff < 0.0D)
+			newYaw += Math.abs(180.0D - newYaw) * 2.0D;
+		double yaw = ((float)newYaw - 98.0D);
+		
+		this.sendLookPacket(player, yaw);
+	}
+	
+	public void sendLookPacket(Player player, double yaw) {
+		PacketContainer packet = new PacketContainer(Packets.Server.ENTITY_HEAD_ROTATION);
+		packet.getIntegers().write(0, this.getEntityId());
+		packet.getBytes().write(0, (byte)(int)(yaw * 256.0F / 360.0F));
+		
+		try {
+			FakeMobsPlugin.getPlugin().getProtocolManager().sendServerPacket(player, packet);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public void sendPositionPacket(Player player) {
 		PacketContainer packet = new PacketContainer(Packets.Server.ENTITY_TELEPORT);
 		
@@ -123,6 +153,25 @@ public class FakeMob {
 		return this.watcherCache;
 	}
 	
+	public List<Player> getNearbyPlayers() {
+		return this.getNearbyPlayers(3D);
+	}
+	
+	public List<Player> getNearbyPlayers(double radius) {
+		List<Player> players = new ArrayList<Player>();
+		
+		for (Player player : Bukkit.getOnlinePlayers()) {
+			Location l = player.getLocation();
+			if (l.getWorld() == this.getWorld() &&
+					Math.max(this.loc.getX(), l.getX()) - Math.min(this.loc.getX(), l.getX()) <= radius &&
+					Math.max(this.loc.getY(), l.getY()) - Math.min(this.loc.getY(), l.getY()) <= radius &&
+					Math.max(this.loc.getZ(), l.getZ()) - Math.min(this.loc.getZ(), l.getZ()) <= radius)
+				players.add(player);
+		}
+		
+		return players;
+	}
+	
 	public int getId() {
 		return this.id;
 	}
@@ -151,6 +200,10 @@ public class FakeMob {
 		return this.sitting;
 	}
 	
+	public boolean isPlayerLook() {
+		return this.playerLook;
+	}
+	
 	public void setLocation(Location loc) {
 		this.loc = loc;
 	}
@@ -167,6 +220,16 @@ public class FakeMob {
 	public void setSitting(boolean sitting) {
 		if (this.type != EntityType.OCELOT && this.type != EntityType.WOLF) return;
 		this.sitting = sitting;
+	}
+	
+	public void setPlayerLook(boolean look) {
+		if (this.playerLook == look) return;
+		if (!look) {
+			for (Player player : Bukkit.getOnlinePlayers())
+				if (player.getWorld() == this.getWorld())
+					this.sendLookPacket(player, this.getLocation().getYaw());
+		}
+		this.playerLook = look;
 	}
 	
 	public void teleport(Location loc) {
