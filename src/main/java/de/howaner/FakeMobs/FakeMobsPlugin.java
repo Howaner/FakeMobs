@@ -105,7 +105,7 @@ public class FakeMobsPlugin extends JavaPlugin {
 	}
 	
 	public FakeMob spawnMob(Location loc, EntityType type) {
-		if (!type.isAlive()) return null;
+		if (!type.isAlive() || type == EntityType.PLAYER) return null;
 		
 		int id = this.getNewId();
 		FakeMob mob = new FakeMob(id, loc, type);

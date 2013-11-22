@@ -158,6 +158,7 @@ public class FakeMob {
 	}
 	
 	public void setCustomName(String name) {
+		if (name.length() > 16) name = name.substring(0, 16);
 		this.name = name;
 	}
 	

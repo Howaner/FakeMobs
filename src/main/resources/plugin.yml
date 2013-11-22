@@ -16,17 +16,28 @@ permissions:
   FakeMobs.select:
     description: Select Fake Mobs
     default: op
+  FakeMobs.name:
+    description: Give Fake Mob a name
+    default: op
+  FakeMobs.sitting:
+    description: Can sit the Fake Mob
+    default: op
   FakeMobs.teleport:
     description: Teleport a Fake Mob
     default: op
   FakeMobs.remove:
     description: Remove Fake Mobs
     default: op
+  FakeMobs.help:
+    description: Can see the Help page
   FakeMobs.*:
     description: All Permissions for FakeMobs
     children:
       FakeMobs.create: true
       FakeMobs.select: true
+      FakeMobs.name: true
+      FakeMobs.sitting: true
       FakeMobs.teleport: true
       FakeMobs.remove: true
+      FakeMobs.help: true
     default: op

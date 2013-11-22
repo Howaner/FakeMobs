@@ -23,7 +23,7 @@ public class MobListener implements Listener {
 	
 	@EventHandler
 	public void onSelectMob(PlayerInteractFakeMobEvent event) {
-		if (event.isCancelled() || event.getAction() != PlayerInteractFakeMobEvent.Action.RIGHT_CLICK) return;
+		if (event.isCancelled()) return;
 		Player player = event.getPlayer();
 		FakeMob mob = event.getMob();
 		if (Cache.selectedMobs.containsKey(player) && Cache.selectedMobs.get(player) == null) {

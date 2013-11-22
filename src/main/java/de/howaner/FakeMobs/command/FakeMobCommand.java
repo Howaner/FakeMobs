@@ -56,6 +56,10 @@ public class FakeMobCommand implements CommandExecutor {
 				player.sendMessage(ChatColor.RED + "This entity is not alive!");
 				return true;
 			}
+			if (type == EntityType.PLAYER) {
+				player.sendMessage(ChatColor.RED + "You can't spawn a Player!");
+				return true;
+			}
 			FakeMob mob = this.plugin.spawnMob(loc, type);
 			if (mob == null) {
 				player.sendMessage(ChatColor.RED + "A error occured while creating the Mob!");
@@ -160,6 +164,20 @@ public class FakeMobCommand implements CommandExecutor {
 			}
 			this.plugin.removeMob(mob.getId());
 			player.sendMessage(ChatColor.GREEN + "Mob " + ChatColor.GRAY + "#" + mob.getId() + ChatColor.GREEN + " removed!");
+			return true;
+		} else if (args[0].equalsIgnoreCase("help")) {
+			if (args.length != 1) return false;
+			if (!player.hasPermission("FakeMobs.help")) {
+				player.sendMessage(ChatColor.RED + "No permission!");
+				return true;
+			}
+			player.sendMessage(ChatColor.GOLD + "Help for " + ChatColor.GRAY + "/FakeMob");
+			player.sendMessage(ChatColor.GRAY + "/FakeMob create <Type> " + ChatColor.RED + "-- " + ChatColor.WHITE + "Spawn a Fakemob");
+			player.sendMessage(ChatColor.GRAY + "/FakeMob select " + ChatColor.RED + "-- " + ChatColor.WHITE + "Select a Fakemob");
+			player.sendMessage(ChatColor.GRAY + "/FakeMob name <Name/none> " + ChatColor.RED + "-- " + ChatColor.WHITE + "Give the Fakemob a name");
+			player.sendMessage(ChatColor.GRAY + "/FakeMob sitting " + ChatColor.RED + "-- " + ChatColor.WHITE + "Change the Sitting state of a pet (Wolf/Ocelot)");
+			player.sendMessage(ChatColor.GRAY + "/FakeMob teleport " + ChatColor.RED + "-- " + ChatColor.WHITE + "Teleport a Fakemob to you");
+			player.sendMessage(ChatColor.GRAY + "/FakeMob remove " + ChatColor.RED + "-- " + ChatColor.WHITE + "Remove a Fakemob");
 			return true;
 		} else
 			return false;
