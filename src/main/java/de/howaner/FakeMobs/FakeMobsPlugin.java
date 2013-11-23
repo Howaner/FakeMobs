@@ -54,6 +54,7 @@ public class FakeMobsPlugin extends JavaPlugin {
 	
 	@Override
 	public void onDisable() {
+		Bukkit.getScheduler().cancelTasks(this);
 		for (FakeMob mob : this.getMobs())
 			for (Player player : Bukkit.getOnlinePlayers())
 				if (mob.getWorld() == player.getWorld())
@@ -167,7 +168,7 @@ public class FakeMobsPlugin extends JavaPlugin {
 					Float.parseFloat(section.getString("Pitch")));
 			EntityType type = EntityType.valueOf(section.getString("Type").toUpperCase());
 			FakeMob mob = new FakeMob(id, loc, type);
-			if (section.contains("Name") && section.getString("Name").length() <= 16)
+			if (section.isSet("Name") && section.getString("Name").length() <= 16)
 				mob.setCustomName(section.getString("Name"));
 			mob.setSitting(section.getBoolean("Sitting"));
 			mob.setPlayerLook(section.getBoolean("PlayerLook"));

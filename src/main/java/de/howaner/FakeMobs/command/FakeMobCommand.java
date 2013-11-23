@@ -145,6 +145,8 @@ public class FakeMobCommand implements CommandExecutor {
 				return true;
 			}
 			mob.setPlayerLook(!mob.isPlayerLook());
+			if (mob.isPlayerLook())
+				mob.sendLookPacket(player, player.getLocation());
 			this.plugin.saveMobsFile();
 			player.sendMessage(ChatColor.GREEN + "Player Look: " + ChatColor.GRAY + ((mob.isPlayerLook()) ? "on" : "off"));
 			return true;

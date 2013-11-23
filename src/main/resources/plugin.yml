@@ -8,7 +8,7 @@ main: de.howaner.FakeMobs.FakeMobsPlugin
 commands:
   FakeMob:
     description: FakeMobs Manage
-    usage: "§4Bad Syntax. Type /FakeMobs help for Help!"
+    usage: "§4Bad Syntax. Type /FakeMob help for Help!"
 permissions:
   FakeMobs.create:
     description: Spawn Fake Mobs
