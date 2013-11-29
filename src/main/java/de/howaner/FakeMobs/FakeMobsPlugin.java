@@ -19,6 +19,7 @@ import java.util.Map.Entry;
 import java.util.logging.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.EntityType;
@@ -42,10 +43,8 @@ public class FakeMobsPlugin extends JavaPlugin {
 		Bukkit.getPluginManager().registerEvents(new MobListener(this), this);
 		this.getCommand("FakeMob").setExecutor(new FakeMobCommand(this));
 		
-		for (FakeMob mob : this.getMobs())
-			for (Player player : Bukkit.getOnlinePlayers())
-				if (mob.getWorld() == player.getWorld())
-					mob.sendSpawnPacket(player);
+		for (Player player : Bukkit.getOnlinePlayers())
+			this.updatePlayer(player);
 		
 		Bukkit.getScheduler().scheduleAsyncRepeatingTask(this, new LookUpdate(this), 5L, 5L);
 		
@@ -119,8 +118,7 @@ public class FakeMobsPlugin extends JavaPlugin {
 		if (event.isCancelled()) return null;
 		
 		for (Player player : Bukkit.getOnlinePlayers())
-			if (player.getWorld() == mob.getWorld())
-				mob.sendSpawnPacket(player);
+			this.updatePlayer(player);
 		
 		this.mobs.put(id, mob);
 		this.saveMobsFile();
@@ -143,6 +141,47 @@ public class FakeMobsPlugin extends JavaPlugin {
 	
 	public Map<Integer, FakeMob> getMobsMap() {
 		return this.mobs;
+	}
+	
+	public List<FakeMob> getMobsInRadius(Location loc, int radius) {
+		int minX = loc.getBlockX() - (radius / 2);
+		int minZ = loc.getBlockZ() - (radius / 2);
+		int maxX = loc.getBlockX() + (radius / 2);
+		int maxZ = loc.getBlockZ() + (radius / 2);
+		
+		List<FakeMob> mobList = new ArrayList<FakeMob>();
+		for (FakeMob mob : this.getMobs()) {
+			if (mob.getWorld() == loc.getWorld() &&
+					mob.getLocation().getBlockX() >= minX &&
+					mob.getLocation().getBlockX() <= maxX &&
+					mob.getLocation().getBlockZ() >= minZ &&
+					mob.getLocation().getBlockZ() <= maxZ)
+				mobList.add(mob);
+		}
+		return mobList;
+	}
+	
+	public List<FakeMob> getMobsInChunk(World world, int chunkX, int chunkZ) {
+		int minX = chunkX * 16;
+		int minZ = chunkZ * 16;
+		int maxX = minX + 15;
+		int maxZ = minZ + 15;
+		
+		List<FakeMob> mobList = new ArrayList<FakeMob>();
+		for (FakeMob mob : this.getMobs()) {
+			if (mob.getWorld() == world &&
+					mob.getLocation().getBlockX() >= minX &&
+					mob.getLocation().getBlockX() <= maxX &&
+					mob.getLocation().getBlockZ() >= minZ &&
+					mob.getLocation().getBlockZ() <= maxZ)
+				mobList.add(mob);
+		}
+		return mobList;
+	}
+	
+	public void updatePlayer(Player player) {
+		for (FakeMob mob : this.getMobs())
+			mob.updatePlayer(player);
 	}
 	
 	public static FakeMobsPlugin getPlugin() {

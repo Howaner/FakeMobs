@@ -22,6 +22,7 @@ public class FakeMob {
 	private boolean sitting = false;
 	private boolean playerLook = false;
 	private WrappedDataWatcher watcherCache = null;
+	public List<Player> seePlayers = new ArrayList<Player>();
 	
 	public FakeMob(int id, Location loc, EntityType type) {
 		this.id = id;
@@ -170,6 +171,25 @@ public class FakeMob {
 		}
 		
 		return players;
+	}
+	
+	public void updatePlayer(final Player player) {
+		this.getDefaultWatcher();
+		new Thread() {
+			@Override
+			public void run() {
+				List<FakeMob> mobs = FakeMobsPlugin.getPlugin().getMobsInRadius(player.getLocation(), Config.SEE_RADIUS);
+				if (mobs.contains(FakeMob.this)) {
+					if (FakeMob.this.seePlayers.contains(player)) return;
+					FakeMob.this.seePlayers.add(player);
+					FakeMob.this.sendSpawnPacket(player);
+				} else {
+					if (!FakeMob.this.seePlayers.contains(player)) return;
+					FakeMob.this.seePlayers.remove(player);
+					FakeMob.this.sendDestroyPacket(player);
+				}
+			}
+		}.start();
 	}
 	
 	public int getId() {

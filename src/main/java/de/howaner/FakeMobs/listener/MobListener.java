@@ -12,6 +12,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 public class MobListener implements Listener {
@@ -34,19 +35,26 @@ public class MobListener implements Listener {
 	}
 	
 	@EventHandler
+	public void onPlayerMove(PlayerMoveEvent event) {
+		if (event.getFrom().getWorld() == event.getTo().getWorld() &&
+				event.getFrom().getBlockX() == event.getTo().getBlockX() &&
+				event.getFrom().getBlockY() == event.getTo().getBlockY() &&
+				event.getFrom().getBlockZ() == event.getTo().getBlockZ())
+			return;
+		Player player = event.getPlayer();
+		this.plugin.updatePlayer(player);
+	}
+	
+	@EventHandler
 	public void onPlayerJoin(PlayerJoinEvent event) {
 		Player player = event.getPlayer();
-		for (FakeMob mob : this.plugin.getMobs())
-			if (mob.getWorld() == player.getWorld())
-				mob.sendSpawnPacket(player);
+		this.plugin.updatePlayer(player);
 	}
 	
 	@EventHandler
 	public void onPlayerChangedWorld(PlayerChangedWorldEvent event) {
 		Player player = event.getPlayer();
-		for (FakeMob mob : this.plugin.getMobs())
-			if (mob.getWorld() == player.getWorld())
-				mob.sendSpawnPacket(player);
+		this.plugin.updatePlayer(player);
 	}
 	
 	@EventHandler
@@ -61,6 +69,8 @@ public class MobListener implements Listener {
 		Player player = event.getPlayer();
 		if (Cache.selectedMobs.containsKey(player))
 			Cache.selectedMobs.remove(player);
+		for (FakeMob mob : this.plugin.getMobs())
+			mob.seePlayers.remove(player);
 	}
 	
 }
