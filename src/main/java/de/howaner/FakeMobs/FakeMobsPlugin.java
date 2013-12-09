@@ -10,6 +10,7 @@ import de.howaner.FakeMobs.listener.ProtocolListener;
 import de.howaner.FakeMobs.util.Cache;
 import de.howaner.FakeMobs.util.FakeMob;
 import de.howaner.FakeMobs.util.LookUpdate;
+import de.howaner.FakeMobs.util.MobInventory;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,6 +20,7 @@ import java.util.Map.Entry;
 import java.util.logging.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -211,6 +213,24 @@ public class FakeMobsPlugin extends JavaPlugin {
 				mob.setCustomName(section.getString("Name"));
 			mob.setSitting(section.getBoolean("Sitting"));
 			mob.setPlayerLook(section.getBoolean("PlayerLook"));
+			
+			if (section.contains("Inventory")) {
+				MobInventory inv = new MobInventory();
+				ConfigurationSection invSection = section.getConfigurationSection("Inventory");
+				if (invSection.contains("ItemInHand"))
+					inv.setItemInHand(invSection.getItemStack("ItemInHand"));
+				if (invSection.contains("Boots"))
+					inv.setBoots(invSection.getItemStack("Boots"));
+				if (invSection.contains("Leggings"))
+					inv.setLeggings(invSection.getItemStack("Leggings"));
+				if (invSection.contains("ChestPlate"))
+					inv.setChestPlate(invSection.getItemStack("ChestPlate"));
+				if (invSection.contains("Helmet"))
+					inv.setHelmet(invSection.getItemStack("Helmet"));
+				
+				mob.setInventory(inv);
+			}
+			
 			this.mobs.put(id, mob);
 		}
 		
@@ -233,6 +253,20 @@ public class FakeMobsPlugin extends JavaPlugin {
 				section.set("Name", mob.getCustomName());
 			section.set("Sitting", mob.isSitting());
 			section.set("PlayerLook", mob.isPlayerLook());
+			
+			if (!mob.getInventory().isEmpty()) {
+				ConfigurationSection invSection = section.createSection("Inventory");
+				if (mob.getInventory().getItemInHand() != null && mob.getInventory().getItemInHand().getType() != Material.AIR)
+					invSection.set("ItemInHand", mob.getInventory().getItemInHand());
+				if (mob.getInventory().getBoots() != null && mob.getInventory().getBoots().getType() != Material.AIR)
+					invSection.set("Boots", mob.getInventory().getBoots());
+				if (mob.getInventory().getLeggings() != null && mob.getInventory().getLeggings().getType() != Material.AIR)
+					invSection.set("Leggings", mob.getInventory().getLeggings());
+				if (mob.getInventory().getChestPlate() != null && mob.getInventory().getChestPlate().getType() != Material.AIR)
+					invSection.set("ChestPlate", mob.getInventory().getChestPlate());
+				if (mob.getInventory().getHelmet() != null && mob.getInventory().getHelmet().getType() != Material.AIR)
+					invSection.set("Helmet", mob.getInventory().getHelmet());
+			}
 		}
 		
 		try {

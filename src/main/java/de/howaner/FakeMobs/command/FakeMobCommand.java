@@ -11,6 +11,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 public class FakeMobCommand implements CommandExecutor {
 	private FakeMobsPlugin plugin;
@@ -168,6 +169,42 @@ public class FakeMobCommand implements CommandExecutor {
 			mob.teleport(player.getLocation());
 			player.sendMessage(ChatColor.GREEN + "Teleported Mob " + ChatColor.GRAY + "#" + mob.getId() + ChatColor.GREEN + "!");
 			return true;
+		} else if (args[0].equalsIgnoreCase("inv")) {
+			if (args.length != 3) return false;
+			if (!player.hasPermission("FakeMobs.inv")) {
+				player.sendMessage(ChatColor.RED + "No permission!");
+				return true;
+			}
+			FakeMob mob = Cache.selectedMobs.get(player);
+			if (mob == null) {
+				player.sendMessage(ChatColor.RED + "You haven't a Selection!");
+				return true;
+			}
+			ItemStack item = Cache.generateItemStack(args[2]);
+			if (item == null) {
+				player.sendMessage(ChatColor.RED + "This Item doesn't exists!");
+				return true;
+			}
+			if (args[1].equalsIgnoreCase("hand")) {
+				mob.getInventory().setItemInHand(item);
+				player.sendMessage(ChatColor.GOLD + "Setted Item in Hand to " + item.getType().name() + "!");
+			} else if (args[1].equalsIgnoreCase("boots")) {
+				mob.getInventory().setBoots(item);
+				player.sendMessage(ChatColor.GOLD + "Setted Boots to " + item.getType().name() + "!");
+			} else if (args[1].equalsIgnoreCase("leggings")) {
+				mob.getInventory().setLeggings(item);
+				player.sendMessage(ChatColor.GOLD + "Setted Leggings to " + item.getType().name() + "!");
+			} else if (args[1].equalsIgnoreCase("chestplate")) {
+				mob.getInventory().setChestPlate(item);
+				player.sendMessage(ChatColor.GOLD + "Setted ChestPlate to " + item.getType().name() + "!");
+			} else if (args[1].equalsIgnoreCase("helmet")) {
+				mob.getInventory().setHelmet(item);
+				player.sendMessage(ChatColor.GOLD + "Setted Helmet to " + item.getType().name() + "!");
+			} else
+				return false;
+			mob.updateInventory();
+			this.plugin.saveMobsFile();
+			return true;
 		} else if (args[0].equalsIgnoreCase("remove")) {
 			if (args.length != 1) return false;
 			if (!player.hasPermission("FakeMobs.remove")) {
@@ -195,6 +232,7 @@ public class FakeMobCommand implements CommandExecutor {
 			player.sendMessage(ChatColor.GRAY + "/FakeMob sitting " + ChatColor.RED + "-- " + ChatColor.WHITE + "Change the Sitting state of a pet (Wolf/Ocelot)");
 			player.sendMessage(ChatColor.GRAY + "/FakeMob look " + ChatColor.RED + "-- " + ChatColor.WHITE + "Enable/Disable the Players Look");
 			player.sendMessage(ChatColor.GRAY + "/FakeMob teleport " + ChatColor.RED + "-- " + ChatColor.WHITE + "Teleport a Fakemob to you");
+			player.sendMessage(ChatColor.GRAY + "/FakeMob inv [hand/boots/leggings/chestplate/helmet] [Item] " + ChatColor.RED + "-- " + ChatColor.WHITE + "Set the Inventory of a Fakemob. Use none as Item to delete.");
 			player.sendMessage(ChatColor.GRAY + "/FakeMob remove " + ChatColor.RED + "-- " + ChatColor.WHITE + "Remove a Fakemob");
 			return true;
 		} else

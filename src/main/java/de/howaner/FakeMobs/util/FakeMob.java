@@ -21,6 +21,7 @@ public class FakeMob {
 	private EntityType type;
 	private boolean sitting = false;
 	private boolean playerLook = false;
+	private MobInventory inventory = new MobInventory();
 	private WrappedDataWatcher watcherCache = null;
 	public List<Player> seePlayers = new ArrayList<Player>();
 	
@@ -28,6 +29,16 @@ public class FakeMob {
 		this.id = id;
 		this.loc = loc;
 		this.type = type;
+	}
+	
+	public MobInventory getInventory() {
+		return this.inventory;
+	}
+	
+	public void setInventory(MobInventory inv) {
+		this.inventory = inv;
+		if (this.inventory == null)
+			this.inventory = new MobInventory();
 	}
 	
 	public int getEntityId() {
@@ -64,8 +75,12 @@ public class FakeMob {
 		try {
 			FakeMobsPlugin.getPlugin().getProtocolManager().sendServerPacket(player, packet);
 		} catch (Exception e) {
+			FakeMobsPlugin.log.severe("Can't send Spawn Packet to " + player.getName() + " from Mob #" + this.getId());
 			e.printStackTrace();
+			return;
 		}
+		
+		this.sendInventoryPacket(player);
 	}
 	
 	public void sendMetaPacket(Player player) {
@@ -85,18 +100,32 @@ public class FakeMob {
 		try {
 			FakeMobsPlugin.getPlugin().getProtocolManager().sendServerPacket(player, packet);
 		} catch (Exception e) {
+			FakeMobsPlugin.log.severe("Can't send Metadata Packet to " + player.getName() + " from Mob #" + this.getId());
+			e.printStackTrace();
+		}
+	}
+	
+	public void sendInventoryPacket(Player player) {
+		List<PacketContainer> packets = this.inventory.createPackets(this.getEntityId());
+		if (packets.isEmpty()) return;
+		
+		try {
+			for (PacketContainer packet : packets)
+				FakeMobsPlugin.getPlugin().getProtocolManager().sendServerPacket(player, packet);
+		} catch (Exception e) {
+			FakeMobsPlugin.log.severe("Can't send Inventory Packets to " + player.getName() + " from Mob #" + this.getId());
 			e.printStackTrace();
 		}
 	}
 	
 	public void sendLookPacket(Player player, Location point) {
 		double xDiff = point.getX() - this.loc.getX();
-		double yDiff = point.getY() - this.loc.getY();
+		//double yDiff = point.getY() - this.loc.getY();
 		double zDiff = point.getZ() - this.loc.getZ();
 		double DistanceXZ = Math.sqrt(xDiff * xDiff + zDiff * zDiff);
-		double DistanceY = Math.sqrt(DistanceXZ * DistanceXZ + yDiff * yDiff);
+		//double DistanceY = Math.sqrt(DistanceXZ * DistanceXZ + yDiff * yDiff);
 		double newYaw = Math.acos(xDiff / DistanceXZ) * 180.0D / 3.141592653589793D;
-		double newPitch = Math.acos(yDiff / DistanceY) * 180.0D / 3.141592653589793D - 90.0D;
+		//double newPitch = Math.acos(yDiff / DistanceY) * 180.0D / 3.141592653589793D - 90.0D;
 		if (zDiff < 0.0D)
 			newYaw += Math.abs(180.0D - newYaw) * 2.0D;
 		double yaw = ((float)newYaw - 98.0D);
@@ -112,6 +141,7 @@ public class FakeMob {
 		try {
 			FakeMobsPlugin.getPlugin().getProtocolManager().sendServerPacket(player, packet);
 		} catch (Exception e) {
+			FakeMobsPlugin.log.severe("Can't send Look Packet to " + player.getName() + " from Mob #" + this.getId());
 			e.printStackTrace();
 		}
 	}
@@ -130,6 +160,7 @@ public class FakeMob {
 		try {
 			FakeMobsPlugin.getPlugin().getProtocolManager().sendServerPacket(player, packet);
 		} catch (Exception e) {
+			FakeMobsPlugin.log.severe("Can't send Position Packet to " + player.getName() + " from Mob #" + this.getId());
 			e.printStackTrace();
 		}
 	}
@@ -141,6 +172,7 @@ public class FakeMob {
 		try {
 			FakeMobsPlugin.getPlugin().getProtocolManager().sendServerPacket(player, packet);
 		} catch (Exception e) {
+			FakeMobsPlugin.log.severe("Can't send Destroy Packet to " + player.getName() + " from Mob #" + this.getId());
 			e.printStackTrace();
 		}
 	}
@@ -171,6 +203,11 @@ public class FakeMob {
 		}
 		
 		return players;
+	}
+	
+	public void updateInventory() {
+		for (Player p : this.seePlayers)
+			this.sendInventoryPacket(p);
 	}
 	
 	public void updatePlayer(final Player player) {
