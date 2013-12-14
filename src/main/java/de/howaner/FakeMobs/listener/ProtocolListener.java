@@ -39,10 +39,11 @@ public class ProtocolListener implements PacketListener {
 			if (mob == null || player.getWorld() != mob.getWorld()) return;
 			
 			if (player.isDead()) return;
+			//Standard is 4. But I use 50 for better selection!
 			if (player.getWorld() != mob.getWorld() ||
-					Math.max(player.getLocation().getX(), mob.getLocation().getX()) - Math.min(player.getLocation().getX(), mob.getLocation().getX()) > 4 ||
-					Math.max(player.getLocation().getY(), mob.getLocation().getY()) - Math.min(player.getLocation().getY(), mob.getLocation().getY()) > 4 ||
-					Math.max(player.getLocation().getZ(), mob.getLocation().getZ()) - Math.min(player.getLocation().getZ(), mob.getLocation().getZ()) > 4)
+					Math.max(player.getLocation().getX(), mob.getLocation().getX()) - Math.min(player.getLocation().getX(), mob.getLocation().getX()) > 50 ||
+					Math.max(player.getLocation().getY(), mob.getLocation().getY()) - Math.min(player.getLocation().getY(), mob.getLocation().getY()) > 50 ||
+					Math.max(player.getLocation().getZ(), mob.getLocation().getZ()) - Math.min(player.getLocation().getZ(), mob.getLocation().getZ()) > 50)
 				return;
 			
 			PlayerInteractFakeMobEvent.Action action = (actionId == 0) ? PlayerInteractFakeMobEvent.Action.LEFT_CLICK : PlayerInteractFakeMobEvent.Action.RIGHT_CLICK;

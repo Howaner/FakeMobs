@@ -45,10 +45,13 @@ public class FakeMobCommand implements CommandExecutor {
 			} catch (Exception e) {
 				player.sendMessage(ChatColor.RED + args[1] + " is not a Entity!");
 				StringBuilder entityBuilder = new StringBuilder();
+				boolean komma = false;
 				for (int i = 0; i < EntityType.values().length; i++) {
-					if (EntityType.values()[i] == null || EntityType.values()[i].getName() == null) continue;
-					if (i != 0) entityBuilder.append(", ");
-					entityBuilder.append(EntityType.values()[i].getName());
+					EntityType t = EntityType.values()[i];
+					if (t == null || !t.isAlive() || t.getName() == null) continue;
+					if (komma) entityBuilder.append(", ");
+					entityBuilder.append(t.name());
+					komma = true;
 				}
 				player.sendMessage(ChatColor.GOLD + "Avaible Entitys: " + ChatColor.WHITE + entityBuilder.toString());
 				return true;
@@ -63,17 +66,35 @@ public class FakeMobCommand implements CommandExecutor {
 			}
 			FakeMob mob = this.plugin.spawnMob(loc, type);
 			if (mob == null) {
-				player.sendMessage(ChatColor.RED + "A error occured while creating the Mob!");
+				player.sendMessage(ChatColor.RED + "A error occurred while creating the Mob!");
 				return true;
 			}
 			player.sendMessage(ChatColor.GREEN + "Created Mob with ID " + ChatColor.GRAY + "#" + mob.getId());
 			return true;
 		} else if (args[0].equalsIgnoreCase("select")) {
-			if (args.length != 1) return false;
+			if (args.length != 1 && args.length != 2) return false;
 			if (!player.hasPermission("FakeMobs.select")) {
 				player.sendMessage(ChatColor.RED + "No permission!");
 				return true;
 			}
+			if (args.length == 2) {
+				int id;
+				try {
+					id = Integer.valueOf(args[1]);
+				} catch (Exception e) {
+					player.sendMessage(ChatColor.RED + "Please enter a valid Id!");
+					return true;
+				}
+				FakeMob mob = this.plugin.getMob(id);
+				if (mob == null) {
+					player.sendMessage(ChatColor.RED + "A Mob with ID " + ChatColor.GRAY + "#" + id + ChatColor.RED + " don't exists!");
+					return false;
+				}
+				Cache.selectedMobs.put(player, mob);
+				player.sendMessage(ChatColor.GREEN + "Mob " + ChatColor.GRAY + "#" + id + ChatColor.GREEN + " selected!");
+				return true;
+			}
+			
 			if (Cache.selectedMobs.containsKey(player) && Cache.selectedMobs.get(player) == null) {
 				Cache.selectedMobs.remove(player);
 				player.sendMessage(ChatColor.GOLD + "Selection cancelled!");
@@ -105,13 +126,12 @@ public class FakeMobCommand implements CommandExecutor {
 			}
 			if (text.equalsIgnoreCase("none")) {
 				mob.setCustomName(null);
-				mob.updateCustomName();
 				player.sendMessage(ChatColor.GREEN + "Mob Name deleted!");
 			} else {
 				mob.setCustomName(text);
-				mob.updateCustomName();
 				player.sendMessage(ChatColor.GREEN + "Mob Name set to " + ChatColor.GRAY + text + ChatColor.GREEN + "!");
 			}
+			mob.updateCustomName();
 			this.plugin.saveMobsFile();
 			return true;
 		} else if (args[0].equalsIgnoreCase("sitting")) {
@@ -167,6 +187,7 @@ public class FakeMobCommand implements CommandExecutor {
 				return true;
 			}
 			mob.teleport(player.getLocation());
+			this.plugin.saveMobsFile();
 			player.sendMessage(ChatColor.GREEN + "Teleported Mob " + ChatColor.GRAY + "#" + mob.getId() + ChatColor.GREEN + "!");
 			return true;
 		} else if (args[0].equalsIgnoreCase("inv")) {
@@ -227,12 +248,12 @@ public class FakeMobCommand implements CommandExecutor {
 			}
 			player.sendMessage(ChatColor.GOLD + "Help for " + ChatColor.GRAY + "/FakeMob");
 			player.sendMessage(ChatColor.GRAY + "/FakeMob create <Type> " + ChatColor.RED + "-- " + ChatColor.WHITE + "Spawn a Fakemob");
-			player.sendMessage(ChatColor.GRAY + "/FakeMob select " + ChatColor.RED + "-- " + ChatColor.WHITE + "Select a Fakemob");
+			player.sendMessage(ChatColor.GRAY + "/FakeMob select [id] " + ChatColor.RED + "-- " + ChatColor.WHITE + "Select a Fakemob");
 			player.sendMessage(ChatColor.GRAY + "/FakeMob name <Name/none> " + ChatColor.RED + "-- " + ChatColor.WHITE + "Give the Fakemob a name");
 			player.sendMessage(ChatColor.GRAY + "/FakeMob sitting " + ChatColor.RED + "-- " + ChatColor.WHITE + "Change the Sitting state of a pet (Wolf/Ocelot)");
 			player.sendMessage(ChatColor.GRAY + "/FakeMob look " + ChatColor.RED + "-- " + ChatColor.WHITE + "Enable/Disable the Players Look");
 			player.sendMessage(ChatColor.GRAY + "/FakeMob teleport " + ChatColor.RED + "-- " + ChatColor.WHITE + "Teleport a Fakemob to you");
-			player.sendMessage(ChatColor.GRAY + "/FakeMob inv [hand/boots/leggings/chestplate/helmet] [Item] " + ChatColor.RED + "-- " + ChatColor.WHITE + "Set the Inventory of a Fakemob. Use none as Item to delete.");
+			player.sendMessage(ChatColor.GRAY + "/FakeMob inv [hand/boots/leggings/chestplate/helmet] [Item] " + ChatColor.RED + "-- " + ChatColor.WHITE + "Set the Inventory of a Fakemob. Use none to delete.");
 			player.sendMessage(ChatColor.GRAY + "/FakeMob remove " + ChatColor.RED + "-- " + ChatColor.WHITE + "Remove a Fakemob");
 			return true;
 		} else

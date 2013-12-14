@@ -282,24 +282,21 @@ public class FakeMob {
 	public void setPlayerLook(boolean look) {
 		if (this.playerLook == look) return;
 		if (!look) {
-			for (Player player : Bukkit.getOnlinePlayers())
-				if (player.getWorld() == this.getWorld())
-					this.sendLookPacket(player, this.getLocation().getYaw());
+			for (Player player : this.seePlayers)
+				this.sendLookPacket(player, this.getLocation().getYaw());
 		}
 		this.playerLook = look;
 	}
 	
 	public void teleport(Location loc) {
 		this.loc = loc;
-		for (Player player : Bukkit.getOnlinePlayers())
-			if (player.getWorld() == this.getWorld())
-				this.sendPositionPacket(player);
+		for (Player player : this.seePlayers)
+			this.sendPositionPacket(player);
 	}
 	
 	public void updateCustomName() {
-		for (Player player : Bukkit.getOnlinePlayers())
-			if (player.getWorld() == this.getWorld())
-				this.sendMetaPacket(player);
+		for (Player player : this.seePlayers)
+			this.sendMetaPacket(player);
 	}
 	
 }
