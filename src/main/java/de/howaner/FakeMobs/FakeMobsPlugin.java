@@ -7,10 +7,12 @@ import de.howaner.FakeMobs.event.RemoveFakeMobEvent;
 import de.howaner.FakeMobs.event.SpawnFakeMobEvent;
 import de.howaner.FakeMobs.listener.MobListener;
 import de.howaner.FakeMobs.listener.ProtocolListener;
+import de.howaner.FakeMobs.merchant.MerchantOffer;
 import de.howaner.FakeMobs.util.Cache;
 import de.howaner.FakeMobs.util.FakeMob;
 import de.howaner.FakeMobs.util.LookUpdate;
 import de.howaner.FakeMobs.util.MobInventory;
+import de.howaner.FakeMobs.util.MobShop;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -231,6 +233,19 @@ public class FakeMobsPlugin extends JavaPlugin {
 				mob.setInventory(inv);
 			}
 			
+			if (section.contains("Shop")) {
+				ConfigurationSection shopSection = section.getConfigurationSection("Shop");
+				MobShop shop = new MobShop();
+				for (String key2 : shopSection.getKeys(false)) {
+					ConfigurationSection itemSection = shopSection.getConfigurationSection(key2);
+					MerchantOffer offer = new MerchantOffer(itemSection.getItemStack("Item1"),
+							((itemSection.contains("Item2")) ? itemSection.getItemStack("Item2") : null),
+							itemSection.getItemStack("Output"));
+					shop.addItem(offer);
+				}
+				mob.setShop(shop);
+			}
+			
 			this.mobs.put(id, mob);
 		}
 		
@@ -266,6 +281,17 @@ public class FakeMobsPlugin extends JavaPlugin {
 					invSection.set("ChestPlate", mob.getInventory().getChestPlate());
 				if (mob.getInventory().getHelmet() != null && mob.getInventory().getHelmet().getType() != Material.AIR)
 					invSection.set("Helmet", mob.getInventory().getHelmet());
+			}
+			
+			if (mob.haveShop()) {
+				ConfigurationSection shopSection = section.createSection("Shop");
+				for (int i = 0; i < mob.getShop().getItems().size(); i++) {
+					ConfigurationSection itemSection = shopSection.createSection(String.valueOf(i));
+					MerchantOffer offer = mob.getShop().getItems().get(i);
+					itemSection.set("Item1", offer.getFirstInput());
+					if (offer.getSecondInput() != null) itemSection.set("Item2", offer.getSecondInput());
+					itemSection.set("Output", offer.getOutput());
+				}
 			}
 		}
 		

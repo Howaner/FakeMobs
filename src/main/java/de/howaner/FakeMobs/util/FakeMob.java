@@ -24,6 +24,7 @@ public class FakeMob {
 	private MobInventory inventory = new MobInventory();
 	private WrappedDataWatcher watcherCache = null;
 	public List<Player> seePlayers = new ArrayList<Player>();
+	private MobShop shop = null;
 	
 	public FakeMob(int id, Location loc, EntityType type) {
 		this.id = id;
@@ -39,6 +40,18 @@ public class FakeMob {
 		this.inventory = inv;
 		if (this.inventory == null)
 			this.inventory = new MobInventory();
+	}
+	
+	public boolean haveShop() {
+		return (this.shop != null);
+	}
+	
+	public MobShop getShop() {
+		return this.shop;
+	}
+	
+	public void setShop(MobShop shop) {
+		this.shop = shop;
 	}
 	
 	public int getEntityId() {
@@ -219,6 +232,9 @@ public class FakeMob {
 				if (mobs.contains(FakeMob.this)) {
 					if (FakeMob.this.seePlayers.contains(player)) return;
 					FakeMob.this.seePlayers.add(player);
+					try {
+						Thread.sleep(1000L);
+					} catch (Exception e) {}
 					FakeMob.this.sendSpawnPacket(player);
 				} else {
 					if (!FakeMob.this.seePlayers.contains(player)) return;

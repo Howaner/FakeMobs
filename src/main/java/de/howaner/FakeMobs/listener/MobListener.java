@@ -4,12 +4,14 @@ import de.howaner.FakeMobs.FakeMobsPlugin;
 import de.howaner.FakeMobs.event.PlayerInteractFakeMobEvent;
 import de.howaner.FakeMobs.util.Cache;
 import de.howaner.FakeMobs.util.FakeMob;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
@@ -23,15 +25,27 @@ public class MobListener implements Listener {
 	}
 	
 	@EventHandler
+	public void onPlayerDeath(PlayerDeathEvent event) {
+		Player player = event.getEntity();
+		for (FakeMob mob : this.plugin.getMobs()) {
+			if (mob.seePlayers.contains(player))
+				mob.seePlayers.remove(player);
+		}
+	}
+	
+	@EventHandler
 	public void onSelectMob(PlayerInteractFakeMobEvent event) {
-		if (event.isCancelled()) return;
 		Player player = event.getPlayer();
 		FakeMob mob = event.getMob();
 		if (Cache.selectedMobs.containsKey(player) && Cache.selectedMobs.get(player) == null) {
 			Cache.selectedMobs.put(player, mob);
 			player.sendMessage(ChatColor.GREEN + "Mob " + ChatColor.GRAY + "#" + mob.getId() + ChatColor.GREEN + " selected!");
 			event.setCancelled(true);
+			return;
 		}
+		
+		if (mob.haveShop())
+			mob.getShop().openShop(player, (mob.getCustomName() != null && !mob.getCustomName().isEmpty()) ? mob.getCustomName() : null);
 	}
 	
 	@EventHandler
