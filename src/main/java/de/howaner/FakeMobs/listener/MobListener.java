@@ -2,9 +2,9 @@ package de.howaner.FakeMobs.listener;
 
 import de.howaner.FakeMobs.FakeMobsPlugin;
 import de.howaner.FakeMobs.event.PlayerInteractFakeMobEvent;
+import de.howaner.FakeMobs.event.PlayerInteractFakeMobEvent.Action;
 import de.howaner.FakeMobs.util.Cache;
 import de.howaner.FakeMobs.util.FakeMob;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -40,11 +40,10 @@ public class MobListener implements Listener {
 		if (Cache.selectedMobs.containsKey(player) && Cache.selectedMobs.get(player) == null) {
 			Cache.selectedMobs.put(player, mob);
 			player.sendMessage(ChatColor.GREEN + "Mob " + ChatColor.GRAY + "#" + mob.getId() + ChatColor.GREEN + " selected!");
-			event.setCancelled(true);
 			return;
 		}
 		
-		if (mob.haveShop())
+		if (event.getAction() == Action.RIGHT_CLICK && mob.haveShop())
 			mob.getShop().openShop(player, (mob.getCustomName() != null && !mob.getCustomName().isEmpty()) ? mob.getCustomName() : null);
 	}
 	

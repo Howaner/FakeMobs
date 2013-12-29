@@ -1,6 +1,6 @@
 package de.howaner.FakeMobs.listener;
 
-import com.comphenix.protocol.Packets;
+import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.ListenerOptions;
 import com.comphenix.protocol.events.ListenerPriority;
 import com.comphenix.protocol.events.ListeningWhitelist;
@@ -8,8 +8,10 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.events.PacketListener;
 import com.comphenix.protocol.injector.GamePhase;
+import com.comphenix.protocol.wrappers.EnumWrappers.EntityUseAction;
 import de.howaner.FakeMobs.FakeMobsPlugin;
 import de.howaner.FakeMobs.event.PlayerInteractFakeMobEvent;
+import de.howaner.FakeMobs.event.PlayerInteractFakeMobEvent.Action;
 import de.howaner.FakeMobs.util.FakeMob;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -30,9 +32,8 @@ public class ProtocolListener implements PacketListener {
 		PacketContainer packet = pe.getPacket();
 		Player player = pe.getPlayer();
 		
-		if (packet.getID() == Packets.Client.USE_ENTITY) {
-			int id = packet.getIntegers().read(1) - 740;
-			int actionId = packet.getIntegers().read(2);
+		if (packet.getType() == PacketType.Play.Client.USE_ENTITY) {
+			int id = ((packet.getIntegers().size() > 1) ? packet.getIntegers().read(1) : packet.getIntegers().read(0)) - 740;
 			
 			if (id < 0) return;
 			FakeMob mob = this.plugin.getMob(id);
@@ -46,23 +47,33 @@ public class ProtocolListener implements PacketListener {
 					Math.max(player.getLocation().getZ(), mob.getLocation().getZ()) - Math.min(player.getLocation().getZ(), mob.getLocation().getZ()) > 50)
 				return;
 			
-			PlayerInteractFakeMobEvent.Action action = (actionId == 0) ? PlayerInteractFakeMobEvent.Action.LEFT_CLICK : PlayerInteractFakeMobEvent.Action.RIGHT_CLICK;
+			Action action;
+			try {
+				action = (packet.getEntityUseActions().read(0) == EntityUseAction.ATTACK) ? Action.LEFT_CLICK : Action.RIGHT_CLICK;
+			} catch (Exception e) {
+				action = (packet.getIntegers().read(2) == 0) ? Action.LEFT_CLICK : Action.RIGHT_CLICK;
+			}
 			
 			PlayerInteractFakeMobEvent event = new PlayerInteractFakeMobEvent(player, mob, action);
 			Bukkit.getPluginManager().callEvent(event);
-			if (!event.isCancelled())
-				event.setCancelled(true);
+			pe.setCancelled(true);
 		}
 	}
 
 	@Override
 	public ListeningWhitelist getSendingWhitelist() {
-		return null;
+		return ListeningWhitelist.EMPTY_WHITELIST;
 	}
 
 	@Override
 	public ListeningWhitelist getReceivingWhitelist() {
-		return new ListeningWhitelist(ListenerPriority.NORMAL, new Integer[] { Packets.Client.USE_ENTITY }, GamePhase.BOTH, ListenerOptions.INTERCEPT_INPUT_BUFFER);
+		return ListeningWhitelist.newBuilder().
+				priority(ListenerPriority.NORMAL).
+				types(PacketType.Play.Client.USE_ENTITY).
+				gamePhase(GamePhase.PLAYING).
+				options(new ListenerOptions[] { ListenerOptions.INTERCEPT_INPUT_BUFFER }).
+				build();
+		//return new ListeningWhitelist(ListenerPriority.NORMAL, new Integer[] { Packets.Client.USE_ENTITY }, GamePhase.BOTH, ListenerOptions.INTERCEPT_INPUT_BUFFER);
 	}
 	
 	@Override

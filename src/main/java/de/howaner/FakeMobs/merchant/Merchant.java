@@ -1,6 +1,10 @@
 package de.howaner.FakeMobs.merchant;
 
-import org.bukkit.craftbukkit.v1_6_R3.entity.CraftPlayer;
+import de.howaner.FakeMobs.merchant.ReflectionUtils.NMSMerchantRecipe;
+import java.lang.reflect.Proxy;
+import java.util.ArrayList;
+import java.util.List;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 public class Merchant {
@@ -9,6 +13,8 @@ public class Merchant {
 	
 	public Merchant() {
 		this.h = new NMSMerchant();
+		this.h.proxy = Proxy.newProxyInstance(Bukkit.class.getClassLoader(), new Class[] { ReflectionUtils.getClassByName(ReflectionUtils.getNMSPackageName() + ".IMerchant") }, this.h);
+		//this.h = new NMSMerchant();
 	}
 	
 	public String getTitle() {
@@ -19,8 +25,17 @@ public class Merchant {
 		this.title = title;
 	}
 	
+	public List<MerchantOffer> getOffers() {
+		List<MerchantOffer> offerList = new ArrayList<MerchantOffer>();
+		for (Object recipe : (List) this.h.getOffers(null)) {
+			if (!(recipe.getClass().isInstance(NMSMerchantRecipe.getNMSClass()))) continue;
+			offerList.add(new MerchantOffer(new NMSMerchantRecipe(recipe)));
+		}
+		return offerList;
+	}
+	
 	public Merchant addOffer(MerchantOffer offer) {
-		this.h.a(offer.getHandle());
+		this.h.a(offer.getHandle().getMerchantRecipe());
 		return this;
 	}
 	
@@ -31,30 +46,33 @@ public class Merchant {
 		return this;
 	}
 	
-	public Merchant setOffers(MerchantOfferList offers) {
-		this.h.setRecipes(offers.getHandle());
+	public Merchant setOffers(List<MerchantOffer> offers) {
+		this.h.clearRecipes();
+		for (MerchantOffer o : offers)
+			this.addOffer(o);
 		return this;
 	}
 	
-	public MerchantOfferList getOffers() {
-		return new MerchantOfferList(this.h.getOffers(null));
-	}
+	/*public Merchant setOffers(MerchantOfferList offers) {
+		this.h.setRecipes(offers.getHandle());
+		return this;
+	}*/
 	
 	public boolean hasCustomer() {
-		return this.h.m_() != null;
+		return this.h.b() != null;
 	}
 	
 	public Player getCustomer() {
-		return (Player)(this.h.m_() == null ? null : this.h.m_().getBukkitEntity());
+		return (Player)(this.h.b() == null ? null : this.h.getBukkitEntity());
 	}
 	
 	public Merchant setCustomer(Player player) {
-		this.h.a_(player == null ? null : ((CraftPlayer)player).getHandle());
+		this.h.a_(player == null ? null : ReflectionUtils.toEntityHuman(player));
 		return this;
 	}
 	
 	public void openTrading(Player player) {
-		this.h.openTrading(((CraftPlayer)player).getHandle(), this.title);
+		this.h.openTrading(ReflectionUtils.toEntityHuman(player), this.title);
 	}
 	
 	protected NMSMerchant getHandle() {

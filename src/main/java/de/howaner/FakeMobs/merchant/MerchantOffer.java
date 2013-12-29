@@ -1,7 +1,7 @@
 package de.howaner.FakeMobs.merchant;
 
-import net.minecraft.server.v1_6_R3.MerchantRecipe;
-import org.bukkit.craftbukkit.v1_6_R3.inventory.CraftItemStack;
+import de.howaner.FakeMobs.merchant.ReflectionUtils.NMSMerchantRecipe;
+import de.howaner.FakeMobs.merchant.ReflectionUtils.OBCCraftItemStack;
 import org.bukkit.inventory.ItemStack;
 
 public class MerchantOffer {
@@ -18,17 +18,20 @@ public class MerchantOffer {
 		this(is, null, re);
 	}
 	
-	protected MerchantOffer(MerchantRecipe handle) {
-		this.items[0] = CraftItemStack.asBukkitCopy(handle.getBuyItem1());
+	protected MerchantOffer(NMSMerchantRecipe handle) {
+		this.items[0] = OBCCraftItemStack.asBukkitCopy(handle.getBuyItem1());
+		this.items[1] = (handle.getBuyItem2() == null) ? null : OBCCraftItemStack.asBukkitCopy(handle.getBuyItem2());
+		this.items[2] = OBCCraftItemStack.asBukkitCopy(handle.getBuyItem3());
+		/*this.items[0] = CraftItemStack.asBukkitCopy(handle.getBuyItem1());
 		this.items[1] = (handle.getBuyItem3() == null ? null : CraftItemStack.asBukkitCopy(handle.getBuyItem2()));
-		this.items[2] = CraftItemStack.asBukkitCopy(handle.getBuyItem3());
+		this.items[2] = CraftItemStack.asBukkitCopy(handle.getBuyItem3());*/
 	}
 	
-	protected MerchantRecipe getHandle() {
-		if (this.items[1] != null) {
-			return new MerchantRecipe(CraftItemStack.asNMSCopy(this.items[0]), CraftItemStack.asNMSCopy(this.items[1]), CraftItemStack.asNMSCopy(this.items[2]));
-		}
-		return new MerchantRecipe(CraftItemStack.asNMSCopy(this.items[0]), CraftItemStack.asNMSCopy(this.items[2]));
+	protected NMSMerchantRecipe getHandle() {
+		if (this.items[1] == null)
+			return new NMSMerchantRecipe(OBCCraftItemStack.asNMSCopy(this.items[0]), OBCCraftItemStack.asNMSCopy(this.items[2]));
+		else
+			return new NMSMerchantRecipe(OBCCraftItemStack.asNMSCopy(this.items[0]), OBCCraftItemStack.asNMSCopy(this.items[1]), OBCCraftItemStack.asNMSCopy(this.items[2]));
 	}
 	
 	public ItemStack getFirstInput() {
