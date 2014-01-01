@@ -35,6 +35,7 @@ public class FakeMobsPlugin extends JavaPlugin {
 	private static FakeMobsPlugin instance;
 	private ProtocolManager pManager;
 	private Map<Integer, FakeMob> mobs = new HashMap<Integer, FakeMob>();
+	private ProtocolListener pListener;
 	
 	@Override
 	public void onEnable() {
@@ -43,7 +44,6 @@ public class FakeMobsPlugin extends JavaPlugin {
 		this.pManager = ProtocolLibrary.getProtocolManager();
 		this.loadMobsFile();
 		
-		this.getProtocolManager().addPacketListener(new ProtocolListener(this));
 		Bukkit.getPluginManager().registerEvents(new MobListener(this), this);
 		this.getCommand("FakeMob").setExecutor(new FakeMobCommand(this));
 		
@@ -51,12 +51,14 @@ public class FakeMobsPlugin extends JavaPlugin {
 			this.updatePlayer(player);
 		
 		Bukkit.getScheduler().scheduleAsyncRepeatingTask(this, new LookUpdate(this), 5L, 5L);
+		this.pManager.addPacketListener(pListener = new ProtocolListener(this));
 		
 		log.info("Plugin enabled!");
 	}
 	
 	@Override
 	public void onDisable() {
+		this.getProtocolManager().removePacketListener(pListener);
 		Bukkit.getScheduler().cancelTasks(this);
 		for (FakeMob mob : this.getMobs())
 			for (Player player : Bukkit.getOnlinePlayers())

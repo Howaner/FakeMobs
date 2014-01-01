@@ -51,7 +51,7 @@ public class ProtocolListener implements PacketListener {
 			try {
 				action = (packet.getEntityUseActions().read(0) == EntityUseAction.ATTACK) ? Action.LEFT_CLICK : Action.RIGHT_CLICK;
 			} catch (Exception e) {
-				action = (packet.getIntegers().read(2) == 0) ? Action.LEFT_CLICK : Action.RIGHT_CLICK;
+				action = (packet.getIntegers().read(2) == 0) ? Action.RIGHT_CLICK : Action.LEFT_CLICK;
 			}
 			
 			PlayerInteractFakeMobEvent event = new PlayerInteractFakeMobEvent(player, mob, action);
@@ -71,7 +71,7 @@ public class ProtocolListener implements PacketListener {
 				priority(ListenerPriority.NORMAL).
 				types(PacketType.Play.Client.USE_ENTITY).
 				gamePhase(GamePhase.PLAYING).
-				options(new ListenerOptions[] { ListenerOptions.INTERCEPT_INPUT_BUFFER }).
+				options(new ListenerOptions[0]).
 				build();
 		//return new ListeningWhitelist(ListenerPriority.NORMAL, new Integer[] { Packets.Client.USE_ENTITY }, GamePhase.BOTH, ListenerOptions.INTERCEPT_INPUT_BUFFER);
 	}
