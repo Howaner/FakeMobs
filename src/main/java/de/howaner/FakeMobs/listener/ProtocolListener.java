@@ -33,7 +33,7 @@ public class ProtocolListener implements PacketListener {
 		Player player = pe.getPlayer();
 		
 		if (packet.getType() == PacketType.Play.Client.USE_ENTITY) {
-			int id = ((packet.getIntegers().size() > 1) ? packet.getIntegers().read(1) : packet.getIntegers().read(0)) - 740;
+			int id = ((packet.getIntegers().size() > 1) ? packet.getIntegers().read(1) : packet.getIntegers().read(0)) - 2300;
 			
 			if (id < 0) return;
 			FakeMob mob = this.plugin.getMob(id);

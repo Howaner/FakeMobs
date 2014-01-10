@@ -55,7 +55,7 @@ public class FakeMob {
 	}
 	
 	public int getEntityId() {
-		return 740 + this.id;
+		return 2300 + this.id;
 	}
 	
 	public void sendSpawnPacket(Player player) {
