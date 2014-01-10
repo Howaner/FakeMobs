@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.howaner</groupId>
 	<artifactId>FakeMobs</artifactId>
-	<version>1.7</version>
+	<version>1.7.1</version>
 	<name>FakeMobs</name>
 	<description>You can spawn Fake Mobs</description>
 	<packaging>jar</packaging>

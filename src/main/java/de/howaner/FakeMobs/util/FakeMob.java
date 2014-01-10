@@ -59,6 +59,39 @@ public class FakeMob {
 	}
 	
 	public void sendSpawnPacket(Player player) {
+		if (this.getType() == EntityType.PLAYER)
+			this.sendPlayerSpawnPacket(player);
+		else
+			this.sendEntitySpawnPacket(player);
+	}
+	
+	public void sendPlayerSpawnPacket(Player player) {
+		PacketContainer packet = new PacketContainer(Packets.Server.NAMED_ENTITY_SPAWN);
+		
+		packet.getIntegers().write(0, this.getEntityId());
+		packet.getIntegers().write(1, (int) Math.floor(this.loc.getX() * 32D)); //X
+		packet.getIntegers().write(2, (int) Math.floor(this.loc.getY() * 32D)); //Y
+		packet.getIntegers().write(3, (int) Math.floor(this.loc.getZ() * 32D)); //Z
+		packet.getIntegers().write(4, 0); //Item in Hand Slot
+		
+		packet.getBytes().write(0, (byte)(int)(this.loc.getYaw() * 256.0F / 360.0F)); //Yaw
+		packet.getBytes().write(1, (byte)(int)(this.loc.getPitch() * 256.0F / 360.0F)); //Pitch
+		
+		packet.getStrings().write(0, (this.getCustomName() == null) ? "No Name" : this.getCustomName());
+		packet.getDataWatcherModifier().write(0, this.getDefaultWatcher());
+		
+		try {
+			FakeMobsPlugin.getPlugin().getProtocolManager().sendServerPacket(player, packet);
+		} catch (Exception e) {
+			FakeMobsPlugin.log.severe("Can't send Spawn Packet to " + player.getName() + " from Mob #" + this.getId());
+			e.printStackTrace();
+			return;
+		}
+		
+		this.sendInventoryPacket(player);
+	}
+	
+	public void sendEntitySpawnPacket(Player player) {
 		PacketContainer packet = new PacketContainer(Packets.Server.MOB_SPAWN);
 		
 		packet.getIntegers().write(0, this.getEntityId());
@@ -100,12 +133,24 @@ public class FakeMob {
 		PacketContainer packet = new PacketContainer(Packets.Server.ENTITY_METADATA);
 		
 		WrappedDataWatcher watcher = this.getDefaultWatcher();
+		watcher.removeObject(8);
+		watcher.removeObject(10);
+		watcher.removeObject(11);
+		watcher.removeObject(16);
+		
 		if (this.name != null) {
 			watcher.setObject(10, (String) this.name);
 			watcher.setObject(11, (byte) 1);
+		} else {
+			watcher.setObject(10, (String) "");
+			watcher.setObject(11, (byte) 0);
 		}
+		if (this.type == EntityType.PLAYER)
+			watcher.setObject(8, (byte)0);
 		if (this.sitting)
 			watcher.setObject(16, (byte) 0x1);
+		else
+			watcher.setObject(16, (byte) 0x0);
 		
 		packet.getIntegers().write(0, this.getEntityId());
 		packet.getWatchableCollectionModifier().write(0, watcher.getWatchableObjects());
@@ -162,9 +207,11 @@ public class FakeMob {
 	public void sendPositionPacket(Player player) {
 		PacketContainer packet = new PacketContainer(Packets.Server.ENTITY_TELEPORT);
 		
+		double newY = (this.getType() == EntityType.PLAYER) ? this.loc.getY() : (this.loc.getY() + 1D);
+		
 		packet.getIntegers().write(0, this.getEntityId()); //Id
 		packet.getIntegers().write(1, (int) Math.floor(this.loc.getX() * 32)); //X
-		packet.getIntegers().write(2, (int) Math.floor((this.loc.getY() + 1D) * 32)); //Y
+		packet.getIntegers().write(2, (int) Math.floor(newY * 32)); //Y
 		packet.getIntegers().write(3, (int) Math.floor(this.loc.getZ() * 32)); //Z
 		
 		packet.getBytes().write(0, (byte)(int)(this.loc.getYaw() * 256.0F / 360.0F)); //Yaw
@@ -192,9 +239,14 @@ public class FakeMob {
 	
 	public WrappedDataWatcher getDefaultWatcher() {
 		if (this.watcherCache == null) {
-			Entity entity = this.getWorld().spawnEntity(new Location(this.getWorld(), 0, 256, 0), type);
-			this.watcherCache = WrappedDataWatcher.getEntityWatcher(entity).deepClone();
-			entity.remove();
+			if (this.getType() == EntityType.PLAYER) {
+				this.watcherCache = new WrappedDataWatcher();
+				this.watcherCache.setObject(8, (byte)0);
+			} else {
+				Entity entity = this.getWorld().spawnEntity(new Location(this.getWorld(), 0, 256, 0), type);
+				this.watcherCache = WrappedDataWatcher.getEntityWatcher(entity).deepClone();
+				entity.remove();
+			}
 		}
 		return this.watcherCache;
 	}
@@ -311,8 +363,13 @@ public class FakeMob {
 	}
 	
 	public void updateCustomName() {
-		for (Player player : this.seePlayers)
-			this.sendMetaPacket(player);
+		for (Player player : this.seePlayers) {
+			if (this.getType() == EntityType.PLAYER) {
+				this.sendDestroyPacket(player);
+				this.sendSpawnPacket(player);
+			} else
+				this.sendMetaPacket(player);
+		}
 	}
 	
 }

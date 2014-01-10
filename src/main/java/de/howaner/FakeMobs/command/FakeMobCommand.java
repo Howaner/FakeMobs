@@ -62,10 +62,6 @@ public class FakeMobCommand implements CommandExecutor {
 				player.sendMessage(ChatColor.RED + "This entity is not alive!");
 				return true;
 			}
-			if (type == EntityType.PLAYER) {
-				player.sendMessage(ChatColor.RED + "You can't spawn a Player!");
-				return true;
-			}
 			FakeMob mob = this.plugin.spawnMob(loc, type);
 			if (mob == null) {
 				player.sendMessage(ChatColor.RED + "A error occurred while creating the Mob!");
@@ -148,7 +144,7 @@ public class FakeMobCommand implements CommandExecutor {
 				return true;
 			}
 			if (mob.getType() != EntityType.OCELOT && mob.getType() != EntityType.WOLF) {
-				player.sendMessage(ChatColor.RED + "This is not a pet!");
+				player.sendMessage(ChatColor.RED + "Only pets can sit!");
 				return true;
 			}
 			mob.setSitting(!mob.isSitting());

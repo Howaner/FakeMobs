@@ -1,5 +1,5 @@
 name: FakeMobs
-version: 1.7
+version: 1.7.1
 author: Howaner
 description: You can spawn Fake Mobs
 depend: [ProtocolLib]
