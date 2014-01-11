@@ -118,7 +118,7 @@ public class FakeMobCommand implements CommandExecutor {
 				textBuilder.append(args[i]);
 			}
 			String text = ChatColor.translateAlternateColorCodes('&', textBuilder.toString());
-			if (text.length() > 16) {
+			if (text.length() > 32) {
 				player.sendMessage(ChatColor.RED + "Name too long!");
 				return true;
 			}
