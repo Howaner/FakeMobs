@@ -3,7 +3,10 @@ package de.howaner.FakeMobs.util;
 import com.comphenix.protocol.Packets;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
+import com.comphenix.protocol.wrappers.WrappedGameProfile;
 import de.howaner.FakeMobs.FakeMobsPlugin;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import org.bukkit.Bukkit;
@@ -76,8 +79,22 @@ public class FakeMob {
 		
 		packet.getBytes().write(0, (byte)(int)(this.loc.getYaw() * 256.0F / 360.0F)); //Yaw
 		packet.getBytes().write(1, (byte)(int)(this.loc.getPitch() * 256.0F / 360.0F)); //Pitch
+				
+		boolean packetRewriter = false;
+		for (Method method : PacketContainer.class.getDeclaredMethods()) {
+			if (method.getName().equalsIgnoreCase("getGameProfiles")) {
+				packetRewriter = true;
+				break;
+			}
+		}
 		
-		packet.getStrings().write(0, (this.getCustomName() == null) ? "No Name" : this.getCustomName());
+		String id = String.valueOf( (int) (Math.random() * (1000 - 500) + 500) );
+		String name = (this.getCustomName() == null) ? "No Name" : this.getCustomName();
+		if (packetRewriter)
+			packet.getGameProfiles().write(0, new WrappedGameProfile(id, name));
+		else
+			packet.getStrings().write(0, name);
+		
 		packet.getDataWatcherModifier().write(0, this.getDefaultWatcher());
 		
 		try {
