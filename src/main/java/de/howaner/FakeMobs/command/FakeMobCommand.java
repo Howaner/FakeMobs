@@ -146,7 +146,7 @@ public class FakeMobCommand implements CommandExecutor {
 				return true;
 			}
 			if (mob.getType() != EntityType.OCELOT && mob.getType() != EntityType.WOLF && mob.getType() != EntityType.PLAYER) {
-				player.sendMessage(ChatColor.RED + "Only pets can sit!");
+				player.sendMessage(ChatColor.RED + "Only pets and players can sit!");
 				return true;
 			}
 			mob.setSitting(!mob.isSitting());

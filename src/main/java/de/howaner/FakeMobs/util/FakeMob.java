@@ -188,8 +188,6 @@ public class FakeMob {
 			watcher.setObject(8, (byte)0);
 		if (this.sitting)
 			watcher.setObject(16, (byte) 0x1);
-		else
-			watcher.setObject(16, (byte) 0x0);
 		
 		packet.getIntegers().write(0, this.getEntityId());
 		packet.getWatchableCollectionModifier().write(0, watcher.getWatchableObjects());
