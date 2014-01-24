@@ -1,6 +1,8 @@
 package de.howaner.FakeMobs.command;
 
 import de.howaner.FakeMobs.FakeMobsPlugin;
+import de.howaner.FakeMobs.interact.InteractAction;
+import de.howaner.FakeMobs.interact.InteractType;
 import de.howaner.FakeMobs.merchant.MerchantOffer;
 import de.howaner.FakeMobs.util.Cache;
 import de.howaner.FakeMobs.util.FakeMob;
@@ -143,7 +145,7 @@ public class FakeMobCommand implements CommandExecutor {
 				player.sendMessage(ChatColor.RED + "You haven't a Selection!");
 				return true;
 			}
-			if (mob.getType() != EntityType.OCELOT && mob.getType() != EntityType.WOLF) {
+			if (mob.getType() != EntityType.OCELOT && mob.getType() != EntityType.WOLF && mob.getType() != EntityType.PLAYER) {
 				player.sendMessage(ChatColor.RED + "Only pets can sit!");
 				return true;
 			}
@@ -376,6 +378,102 @@ public class FakeMobCommand implements CommandExecutor {
 				return true;
 			} else
 				return false;
+		} else if (args[0].equalsIgnoreCase("interact")) {
+			if (args.length < 2)
+				return false;
+			if (!player.hasPermission("FakeMobs.interact")) {
+				player.sendMessage(ChatColor.RED + "No permission!");
+				return true;
+			}
+			FakeMob mob = Cache.selectedMobs.get(player);
+			if (mob == null) {
+				player.sendMessage(ChatColor.RED + "You haven't a Selection!");
+				return true;
+			}
+			if (args[1].equalsIgnoreCase("add")) {
+				if (args.length < 4)
+					return false;
+				InteractType type = InteractType.getByName(args[2]);
+				if (type == null) {
+					player.sendMessage(ChatColor.RED + "Interact type " + args[2] + " can't found!");
+					player.sendMessage(ChatColor.GREEN + "Available Types: " + ChatColor.WHITE + InteractType.getStringList());
+					return true;
+				}
+				InteractAction action;
+				try {
+					action = type.getActionClass().newInstance();
+				} catch (Exception e) {
+					e.printStackTrace();
+					return true;
+				}
+				if (action.getArgsLength() != -1 && (args.length - 3) != action.getArgsLength()) {
+					player.sendMessage(action.getUsageText());
+				}
+				
+				StringBuilder argsBuilder = new StringBuilder();
+				for (int i = 3; i < args.length; i++) {
+					if (i != 3) argsBuilder.append(" ");
+					argsBuilder.append(args[i]);
+				}
+				
+				action.onSet(player, argsBuilder.toString());
+				mob.addInteractAction(action);
+				this.plugin.saveMobsFile();
+				return true;
+			} else if (args[1].equalsIgnoreCase("remove")) {
+				if (args.length != 3)
+					return false;
+				int id;
+				try {
+					id = Integer.parseInt(args[2]);
+				} catch (Exception e) {
+					player.sendMessage(ChatColor.RED + args[2] + " isn't a valid ID!");
+					return true;
+				}
+				InteractAction action = mob.getInteractActions().get(id);
+				if (action == null) {
+					player.sendMessage(ChatColor.RED + "The Mob haven't a Mob Action with ID #" + id + "!");
+					return true;
+				}
+				
+				mob.removeInteractAction(action);
+				player.sendMessage(ChatColor.GOLD + "Mob Action with ID #" + id + " removed!");
+				this.plugin.saveMobsFile();
+				return true;
+			} else if (args[1].equalsIgnoreCase("list")) {
+				if (args.length != 2)
+					return false;
+				if (mob.getInteractActions().isEmpty()) {
+					player.sendMessage(ChatColor.GOLD + "Registered Mob Actions: " + ChatColor.WHITE + "None");
+				} else {
+					player.sendMessage(ChatColor.GOLD + "Registered Mob Actions:");
+					for (int i = 0; i < mob.getInteractActions().size(); i++) {
+						InteractAction action = mob.getInteractActions().get(i);
+						StringBuilder builder = new StringBuilder();
+						
+						builder.append(ChatColor.GRAY).append("#").append(i).append(": ")
+								.append(ChatColor.GOLD).append("Type: ").append(ChatColor.WHITE).append(action.getType().name())
+								.append(", ")
+								.append(ChatColor.GOLD).append("Value: ").append(ChatColor.WHITE).append(action.toString());
+						
+						player.sendMessage(builder.toString());
+					}
+				}
+				player.sendMessage(ChatColor.GOLD + "Available Interact Actions: " + ChatColor.WHITE + InteractType.getStringList());
+				return true;
+			} else if (args[1].equalsIgnoreCase("clear")) {
+				if (args.length != 2)
+					return false;
+				if (mob.getInteractActions().isEmpty()) {
+					player.sendMessage(ChatColor.RED + "The Mob haven't Interact Actions!");
+					return true;
+				}
+				mob.clearInteractAction();
+				this.plugin.saveMobsFile();
+				player.sendMessage(ChatColor.GOLD + "All Interact Actions removed!");
+				return true;
+			} else
+				return false;
 		} else if (args[0].equalsIgnoreCase("remove")) {
 			if (args.length != 1) return false;
 			if (!player.hasPermission("FakeMobs.remove")) {
@@ -400,7 +498,7 @@ public class FakeMobCommand implements CommandExecutor {
 			player.sendMessage(ChatColor.GRAY + "/FakeMob create <Type> " + ChatColor.RED + "-- " + ChatColor.WHITE + "Spawn a Fakemob");
 			player.sendMessage(ChatColor.GRAY + "/FakeMob select [id] " + ChatColor.RED + "-- " + ChatColor.WHITE + "Select a Fakemob");
 			player.sendMessage(ChatColor.GRAY + "/FakeMob name <Name/none> " + ChatColor.RED + "-- " + ChatColor.WHITE + "Give the Fakemob a name");
-			player.sendMessage(ChatColor.GRAY + "/FakeMob sitting " + ChatColor.RED + "-- " + ChatColor.WHITE + "Change the Sitting state of a pet (Wolf/Ocelot)");
+			player.sendMessage(ChatColor.GRAY + "/FakeMob sitting " + ChatColor.RED + "-- " + ChatColor.WHITE + "Change the Sitting state of a pet and players (Wolf/Ocelot/Player)");
 			player.sendMessage(ChatColor.GRAY + "/FakeMob look " + ChatColor.RED + "-- " + ChatColor.WHITE + "Enable/Disable the Players Look");
 			player.sendMessage(ChatColor.GRAY + "/FakeMob teleport " + ChatColor.RED + "-- " + ChatColor.WHITE + "Teleport a Fakemob to you");
 			player.sendMessage(ChatColor.GRAY + "/FakeMob inv <hand/boots/leggings/chestplate/helmet> <Item> " + ChatColor.RED + "-- " + ChatColor.WHITE + "Set the Inventory of a Fakemob. Use none to delete.");
@@ -410,6 +508,10 @@ public class FakeMobCommand implements CommandExecutor {
 			player.sendMessage(ChatColor.GRAY + "/FakeMob shop removeItem <id> " + ChatColor.RED + "-- " + ChatColor.WHITE + "Remove a Item with this Id (you can see Id's in /Fakemob shop items");
 			player.sendMessage(ChatColor.GRAY + "/FakeMob shop clear " + ChatColor.RED + "-- " + ChatColor.WHITE + "Remove all Items from the Shop");
 			player.sendMessage(ChatColor.GRAY + "/FakeMob shop items " + ChatColor.RED + "-- " + ChatColor.WHITE + "Display all Items in the Shop");
+			player.sendMessage(ChatColor.GRAY + "/FakeMob interact add <Type> <Value> " + ChatColor.RED + "-- " + ChatColor.WHITE + "Add Interact Action to the Mob");
+			player.sendMessage(ChatColor.GRAY + "/FakeMob interact remove <ID> " + ChatColor.RED + "-- " + ChatColor.WHITE + "Remove Interact Action");
+			player.sendMessage(ChatColor.GRAY + "/FakeMob interact list " + ChatColor.RED + "-- " + ChatColor.WHITE + "List all Interact Actions from the Mob");
+			player.sendMessage(ChatColor.GRAY + "/FakeMob interact clear " + ChatColor.RED + "-- " + ChatColor.WHITE + "Remove all Interact Actions from the Mob");
 			player.sendMessage(ChatColor.GRAY + "/FakeMob remove " + ChatColor.RED + "-- " + ChatColor.WHITE + "Remove a Fakemob");
 			return true;
 		} else

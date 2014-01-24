@@ -1,5 +1,5 @@
 name: FakeMobs
-version: 1.7.3
+version: 1.7.4
 author: Howaner
 description: You can spawn Fake Mobs
 depend: [ProtocolLib]
@@ -34,6 +34,9 @@ permissions:
   FakeMobs.shop:
     description: Permission to manage the Shop of a Fake mob
     default: op
+  FakeMobs.interact:
+    description: Permission to manage the Interact Actions of a Fake mob
+    default: op
   FakeMobs.remove:
     description: Remove Fake Mobs
     default: op
@@ -50,6 +53,7 @@ permissions:
       FakeMobs.teleport: true
       FakeMobs.inv: true
       FakeMobs.shop: true
+      FakeMobs.interact: true
       FakeMobs.remove: true
       FakeMobs.help: true
     default: op

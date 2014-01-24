@@ -1,11 +1,11 @@
 package de.howaner.FakeMobs.util;
 
+import de.howaner.FakeMobs.interact.InteractAction;
 import com.comphenix.protocol.Packets;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 import com.comphenix.protocol.wrappers.WrappedGameProfile;
 import de.howaner.FakeMobs.FakeMobsPlugin;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,11 +28,28 @@ public class FakeMob {
 	private WrappedDataWatcher watcherCache = null;
 	public List<Player> seePlayers = new ArrayList<Player>();
 	private MobShop shop = null;
+	private List<InteractAction> interacts = new ArrayList<InteractAction>();
 	
 	public FakeMob(int id, Location loc, EntityType type) {
 		this.id = id;
 		this.loc = loc;
 		this.type = type;
+	}
+	
+	public List<InteractAction> getInteractActions() {
+		return this.interacts;
+	}
+	
+	public void clearInteractAction() {
+		this.interacts.clear();
+	}
+	
+	public void addInteractAction(InteractAction action) {
+		this.interacts.add(action);
+	}
+	
+	public void removeInteractAction(InteractAction action) {
+		this.interacts.remove(action);
 	}
 	
 	public MobInventory getInventory() {
@@ -95,7 +112,12 @@ public class FakeMob {
 		else
 			packet.getStrings().write(0, name);
 		
-		packet.getDataWatcherModifier().write(0, this.getDefaultWatcher());
+		WrappedDataWatcher watcher = this.getDefaultWatcher();
+		watcher.removeObject(0);
+		if (this.sitting)
+			watcher.setObject(0, (byte) (1 << 1));
+		
+		packet.getDataWatcherModifier().write(0, watcher);
 		
 		try {
 			FakeMobsPlugin.getPlugin().getProtocolManager().sendServerPacket(player, packet);
@@ -360,7 +382,7 @@ public class FakeMob {
 	}
 	
 	public void setSitting(boolean sitting) {
-		if (this.type != EntityType.OCELOT && this.type != EntityType.WOLF) return;
+		if (this.type != EntityType.OCELOT && this.type != EntityType.WOLF && this.type != EntityType.PLAYER) return;
 		this.sitting = sitting;
 	}
 	

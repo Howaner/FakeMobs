@@ -5,6 +5,9 @@ import com.comphenix.protocol.ProtocolManager;
 import de.howaner.FakeMobs.command.FakeMobCommand;
 import de.howaner.FakeMobs.event.RemoveFakeMobEvent;
 import de.howaner.FakeMobs.event.SpawnFakeMobEvent;
+import de.howaner.FakeMobs.interact.InteractAction;
+import de.howaner.FakeMobs.interact.InteractType;
+import de.howaner.FakeMobs.listener.InteractListener;
 import de.howaner.FakeMobs.listener.MobListener;
 import de.howaner.FakeMobs.listener.ProtocolListener;
 import de.howaner.FakeMobs.merchant.MerchantOffer;
@@ -44,6 +47,7 @@ public class FakeMobsPlugin extends JavaPlugin {
 		this.pManager = ProtocolLibrary.getProtocolManager();
 		this.loadMobsFile();
 		
+		Bukkit.getPluginManager().registerEvents(new InteractListener(), this);
 		Bukkit.getPluginManager().registerEvents(new MobListener(this), this);
 		this.getCommand("FakeMob").setExecutor(new FakeMobCommand(this));
 		
@@ -248,6 +252,27 @@ public class FakeMobsPlugin extends JavaPlugin {
 				mob.setShop(shop);
 			}
 			
+			if (section.contains("Interacts")) {
+				ConfigurationSection interactsSection = section.getConfigurationSection("Interacts");
+				for (String key2 : interactsSection.getKeys(false)) {
+					ConfigurationSection interactSection = interactsSection.getConfigurationSection(key2);
+					InteractType interactType = InteractType.getByName(interactSection.getString("Type"));
+					if (interactType == null) {
+						log.warning("Interact Type " + interactSection.getString("Type") + " not exists!");
+						continue;
+					}
+					InteractAction action;
+					try {
+						action = interactType.getActionClass().newInstance();
+					} catch (Exception e) {
+						e.printStackTrace();
+						continue;
+					}
+					action.loadFromConfig(interactSection);
+					mob.addInteractAction(action);
+				}
+			}
+			
 			this.mobs.put(id, mob);
 		}
 		
@@ -293,6 +318,16 @@ public class FakeMobsPlugin extends JavaPlugin {
 					itemSection.set("Item1", offer.getFirstInput());
 					if (offer.getSecondInput() != null) itemSection.set("Item2", offer.getSecondInput());
 					itemSection.set("Output", offer.getOutput());
+				}
+			}
+			
+			if (!mob.getInteractActions().isEmpty()) {
+				ConfigurationSection interactsSection = section.createSection("Interacts");
+				for (int i = 0; i < mob.getInteractActions().size(); i++) {
+					InteractAction action = mob.getInteractActions().get(i);
+					ConfigurationSection interactSection = interactsSection.createSection("#" + String.valueOf(i));
+					interactSection.set("Type", action.getType().name());
+					action.saveToConfig(interactSection);
 				}
 			}
 		}
