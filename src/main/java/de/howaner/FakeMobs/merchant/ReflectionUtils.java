@@ -65,7 +65,7 @@ public class ReflectionUtils {
 		
 		public void clear() {
 			try {
-				Method m = getNMSClass().getDeclaredMethod("clear");
+				Method m = ArrayList.class.getDeclaredMethod("clear");
 				m.setAccessible(true);
 				m.invoke(this.handle);
 			} catch (Exception e) {

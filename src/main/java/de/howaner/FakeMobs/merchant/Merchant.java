@@ -14,7 +14,6 @@ public class Merchant {
 	public Merchant() {
 		this.h = new NMSMerchant();
 		this.h.proxy = Proxy.newProxyInstance(Bukkit.class.getClassLoader(), new Class[] { ReflectionUtils.getClassByName(ReflectionUtils.getNMSPackageName() + ".IMerchant") }, this.h);
-		//this.h = new NMSMerchant();
 	}
 	
 	public String getTitle() {
@@ -28,7 +27,6 @@ public class Merchant {
 	public List<MerchantOffer> getOffers() {
 		List<MerchantOffer> offerList = new ArrayList<MerchantOffer>();
 		for (Object recipe : (List) this.h.getOffers(null)) {
-			if (!(recipe.getClass().isInstance(NMSMerchantRecipe.getNMSClass()))) continue;
 			offerList.add(new MerchantOffer(new NMSMerchantRecipe(recipe)));
 		}
 		return offerList;
@@ -52,11 +50,6 @@ public class Merchant {
 			this.addOffer(o);
 		return this;
 	}
-	
-	/*public Merchant setOffers(MerchantOfferList offers) {
-		this.h.setRecipes(offers.getHandle());
-		return this;
-	}*/
 	
 	public boolean hasCustomer() {
 		return this.h.b() != null;
