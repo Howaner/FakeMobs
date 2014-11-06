@@ -12,6 +12,7 @@ import de.howaner.FakeMobs.listener.MobListener;
 import de.howaner.FakeMobs.listener.ProtocolListener;
 import de.howaner.FakeMobs.merchant.MerchantOffer;
 import de.howaner.FakeMobs.util.Cache;
+import de.howaner.FakeMobs.util.Config;
 import de.howaner.FakeMobs.util.FakeMob;
 import de.howaner.FakeMobs.util.LookUpdate;
 import de.howaner.FakeMobs.util.MobInventory;
@@ -24,6 +25,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
 import org.bukkit.Bukkit;
+import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -37,7 +39,7 @@ public class FakeMobsPlugin extends JavaPlugin {
 	public static Logger log;
 	private static FakeMobsPlugin instance;
 	private ProtocolManager pManager;
-	private Map<Integer, FakeMob> mobs = new HashMap<Integer, FakeMob>();
+	private final Map<Integer, FakeMob> mobs = new HashMap<Integer, FakeMob>();
 	private ProtocolListener pListener;
 	
 	@Override
@@ -47,12 +49,15 @@ public class FakeMobsPlugin extends JavaPlugin {
 		this.pManager = ProtocolLibrary.getProtocolManager();
 		this.loadMobsFile();
 		
+		if (!Config.configFile.exists()) Config.save();
+		Config.load();
+		
 		Bukkit.getPluginManager().registerEvents(new InteractListener(), this);
 		Bukkit.getPluginManager().registerEvents(new MobListener(this), this);
 		this.getCommand("FakeMob").setExecutor(new FakeMobCommand(this));
 		
 		for (Player player : Bukkit.getOnlinePlayers())
-			this.updatePlayer(player);
+			this.updatePlayerView(player);
 		
 		Bukkit.getScheduler().scheduleAsyncRepeatingTask(this, new LookUpdate(this), 5L, 5L);
 		this.pManager.addPacketListener(pListener = new ProtocolListener(this));
@@ -88,7 +93,7 @@ public class FakeMobsPlugin extends JavaPlugin {
 	}
 	
 	public boolean isMobOnLocation(Location loc) {
-		return (this.getMob(loc) == null) ? false : true;
+		return (this.getMob(loc) != null);
 	}
 	
 	public FakeMob getMob(int id) {
@@ -127,8 +132,8 @@ public class FakeMobsPlugin extends JavaPlugin {
 		Bukkit.getPluginManager().callEvent(event);
 		if (event.isCancelled()) return null;
 		
-		for (Player player : Bukkit.getOnlinePlayers())
-			this.updatePlayer(player);
+		for (Player player : loc.getWorld().getPlayers())
+			this.updatePlayerView(player);
 		
 		this.mobs.put(id, mob);
 		this.saveMobsFile();
@@ -152,46 +157,40 @@ public class FakeMobsPlugin extends JavaPlugin {
 	public Map<Integer, FakeMob> getMobsMap() {
 		return this.mobs;
 	}
+
+	/** Called every chunk move */
+	public void updatePlayerView(Player player) {
+		for (FakeMob mob : this.getMobs()) {
+			if (mob.isInRange(player)) {
+				mob.loadPlayer(player);
+			} else {
+				mob.unloadPlayer(player);
+			}
+		}
+	}
 	
 	public List<FakeMob> getMobsInRadius(Location loc, int radius) {
-		int minX = loc.getBlockX() - (radius / 2);
-		int minZ = loc.getBlockZ() - (radius / 2);
-		int maxX = loc.getBlockX() + (radius / 2);
-		int maxZ = loc.getBlockZ() + (radius / 2);
-		
 		List<FakeMob> mobList = new ArrayList<FakeMob>();
 		for (FakeMob mob : this.getMobs()) {
-			if (mob.getWorld() == loc.getWorld() &&
-					mob.getLocation().getBlockX() >= minX &&
-					mob.getLocation().getBlockX() <= maxX &&
-					mob.getLocation().getBlockZ() >= minZ &&
-					mob.getLocation().getBlockZ() <= maxZ)
+			if (mob.getWorld() == loc.getWorld() && mob.getLocation().distance(loc) <= radius) {
 				mobList.add(mob);
+			}
 		}
+
 		return mobList;
 	}
 	
 	public List<FakeMob> getMobsInChunk(World world, int chunkX, int chunkZ) {
-		int minX = chunkX * 16;
-		int minZ = chunkZ * 16;
-		int maxX = minX + 15;
-		int maxZ = minZ + 15;
-		
 		List<FakeMob> mobList = new ArrayList<FakeMob>();
+
 		for (FakeMob mob : this.getMobs()) {
-			if (mob.getWorld() == world &&
-					mob.getLocation().getBlockX() >= minX &&
-					mob.getLocation().getBlockX() <= maxX &&
-					mob.getLocation().getBlockZ() >= minZ &&
-					mob.getLocation().getBlockZ() <= maxZ)
+			Chunk chunk = mob.getLocation().getChunk();
+			if (mob.getWorld() == world && chunk.getX() == chunkX && chunk.getZ() == chunkZ) {
 				mobList.add(mob);
+			}
 		}
+
 		return mobList;
-	}
-	
-	public void updatePlayer(Player player) {
-		for (FakeMob mob : this.getMobs())
-			mob.updatePlayer(player);
 	}
 	
 	public static FakeMobsPlugin getPlugin() {

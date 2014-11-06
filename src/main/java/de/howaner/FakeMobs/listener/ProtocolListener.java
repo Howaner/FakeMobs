@@ -8,11 +8,11 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.events.PacketListener;
 import com.comphenix.protocol.injector.GamePhase;
-import com.comphenix.protocol.wrappers.EnumWrappers.EntityUseAction;
 import de.howaner.FakeMobs.FakeMobsPlugin;
 import de.howaner.FakeMobs.event.PlayerInteractFakeMobEvent;
 import de.howaner.FakeMobs.event.PlayerInteractFakeMobEvent.Action;
 import de.howaner.FakeMobs.util.FakeMob;
+import java.lang.reflect.Field;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -33,27 +33,37 @@ public class ProtocolListener implements PacketListener {
 		Player player = pe.getPlayer();
 		
 		if (packet.getType() == PacketType.Play.Client.USE_ENTITY) {
-			int id = ((packet.getIntegers().size() > 1) ? packet.getIntegers().read(1) : packet.getIntegers().read(0)) - 2300;
-			
+			int id = packet.getIntegers().read(0) - 2300;
+
 			if (id < 0) return;
 			FakeMob mob = this.plugin.getMob(id);
 			if (mob == null || player.getWorld() != mob.getWorld()) return;
 			
 			if (player.isDead()) return;
-			//Standard is 4. But I use 50 for better selection!
-			if (player.getWorld() != mob.getWorld() ||
-					Math.max(player.getLocation().getX(), mob.getLocation().getX()) - Math.min(player.getLocation().getX(), mob.getLocation().getX()) > 50 ||
-					Math.max(player.getLocation().getY(), mob.getLocation().getY()) - Math.min(player.getLocation().getY(), mob.getLocation().getY()) > 50 ||
-					Math.max(player.getLocation().getZ(), mob.getLocation().getZ()) - Math.min(player.getLocation().getZ(), mob.getLocation().getZ()) > 50)
+			// Standard is 4. But I use 20 for better selection!
+			if (player.getLocation().distance(mob.getLocation()) > 20) {
 				return;
-			
-			Action action;
-			try {
-				action = (packet.getEntityUseActions().read(0) == EntityUseAction.ATTACK) ? Action.LEFT_CLICK : Action.RIGHT_CLICK;
-			} catch (Exception e) {
-				action = (packet.getIntegers().read(2) == 0) ? Action.RIGHT_CLICK : Action.LEFT_CLICK;
 			}
-			
+
+			Action action = null;
+			try {
+				Field field = packet.getEntityUseActions().getField(0);
+				field.setAccessible(true);
+				Object obj = field.get(packet.getEntityUseActions().getTarget());
+				String actionName = (obj == null) ? "" : obj.toString();
+
+				if (actionName.equals("INTERACT")) {
+					action = Action.RIGHT_CLICK;
+				} else if (actionName.equals("ATTACK")) {
+					action = Action.LEFT_CLICK;
+				} else {
+					return;
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+				return;
+			}
+
 			PlayerInteractFakeMobEvent event = new PlayerInteractFakeMobEvent(player, mob, action);
 			Bukkit.getPluginManager().callEvent(event);
 			pe.setCancelled(true);
@@ -73,7 +83,6 @@ public class ProtocolListener implements PacketListener {
 				gamePhase(GamePhase.PLAYING).
 				options(new ListenerOptions[0]).
 				build();
-		//return new ListeningWhitelist(ListenerPriority.NORMAL, new Integer[] { Packets.Client.USE_ENTITY }, GamePhase.BOTH, ListenerOptions.INTERCEPT_INPUT_BUFFER);
 	}
 	
 	@Override

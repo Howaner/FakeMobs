@@ -9,106 +9,99 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
 public class MobInventory {
-	private ItemStack itemInHand = new ItemStack(Material.AIR);
-	private ItemStack boots = new ItemStack(Material.AIR);
-	private ItemStack leggings = new ItemStack(Material.AIR);
-	private ItemStack chestPlate = new ItemStack(Material.AIR);
-	private ItemStack helmet = new ItemStack(Material.AIR);
-	
-	
+	// 0 - Item in Hand,  1 = Boots, 2 = Leggings, 3 = ChestPlate, 4 = Helmet
+	private ItemStack[] items = new ItemStack[5];
+
 	public ItemStack getItemInHand() {
-		return this.itemInHand;
+		return this.items[0];
 	}
 	
 	public ItemStack getBoots() {
-		return this.boots;
+		return this.items[1];
 	}
 	
 	public ItemStack getLeggings() {
-		return this.leggings;
+		return this.items[2];
 	}
 	
 	public ItemStack getChestPlate() {
-		return this.chestPlate;
+		return this.items[3];
 	}
 	
 	public ItemStack getHelmet() {
-		return this.helmet;
+		return this.items[4];
 	}
 	
-	public void setItemInHand(ItemStack itemInHand) {
-		this.itemInHand = itemInHand;
-		if (this.itemInHand == null)
-			this.itemInHand = new ItemStack(Material.AIR);
+	public void setItemInHand(ItemStack item) {
+		this.setSlot(0, item);
 	}
 	
-	public void setBoots(ItemStack boots) {
-		this.boots = boots;
-		if (this.boots == null)
-			this.boots = new ItemStack(Material.AIR);
+	public void setBoots(ItemStack item) {
+		this.setSlot(1, item);
 	}
 	
-	public void setLeggings(ItemStack leggings) {
-		this.leggings = leggings;
-		if (this.leggings == null)
-			this.leggings = new ItemStack(Material.AIR);
+	public void setLeggings(ItemStack item) {
+		this.setSlot(2, item);
 	}
 	
-	public void setChestPlate(ItemStack chestPlate) {
-		this.chestPlate = chestPlate;
-		if (this.chestPlate == null)
-			this.chestPlate = new ItemStack(Material.AIR);
+	public void setChestPlate(ItemStack item) {
+		this.setSlot(3, item);
 	}
 	
-	public void setHelmet(ItemStack helmet) {
-		this.helmet = helmet;
-		if (this.helmet == null)
-			this.helmet = new ItemStack(Material.AIR);
+	public void setHelmet(ItemStack item) {
+		this.setSlot(4, item);
 	}
 	
-	public ItemStack getStackBySlot(int slot) {
-		switch (slot) {
-			case 0: return this.getItemInHand();
-			case 1: return this.getBoots();
-			case 2: return this.getLeggings();
-			case 3: return this.getChestPlate();
-			case 4: return this.getHelmet();
+	public ItemStack getSlot(int slot) {
+		if (slot < 0 || slot >= this.items.length) {
+			return null;
 		}
-		return null;
+
+		return this.items[slot];
+	}
+
+	public void setSlot(int slot, ItemStack item) {
+		if (item != null && item.getType() == Material.AIR) {
+			item = null;
+		}
+
+		if (slot < 0 || slot >= this.items.length) {
+			return;
+		}
+
+		this.items[slot] = item;
 	}
 	
 	public List<PacketContainer> createPackets(int entityId) {
 		List<PacketContainer> packetList = new ArrayList<PacketContainer>();
-		for (int i = 0; i <= 4; i++) {
-			ItemStack stack = this.getStackBySlot(i);
-			if (stack == null) continue;
+		for (int i = 0; i < 5; i++) {
+			ItemStack stack = this.getSlot(i);
+
 			PacketContainer packet = FakeMobsPlugin.getPlugin().getProtocolManager().createPacket(Packets.Server.ENTITY_EQUIPMENT);
 			packet.getIntegers().write(0, entityId);
 			packet.getIntegers().write(1, i);
 			packet.getItemModifier().write(0, stack);
+
 			packetList.add(packet);
 		}
 		return packetList;
 	}
 	
 	public boolean isEmpty() {
-		return (
-				(this.getItemInHand() == null || this.getItemInHand().getType() == Material.AIR) &&
-				(this.getBoots() == null || this.getBoots().getType() == Material.AIR) &&
-				(this.getLeggings() == null || this.getLeggings().getType() == Material.AIR) &&
-				(this.getChestPlate() == null || this.getChestPlate().getType() == Material.AIR) &&
-				(this.getHelmet() == null || this.getHelmet().getType() != Material.AIR)
-		);
+		for (ItemStack item : this.items) {
+			if (item != null && item.getType() != Material.AIR) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	@Override
 	public MobInventory clone() {
 		MobInventory inv = new MobInventory();
-		inv.setItemInHand(this.getItemInHand());
-		inv.setBoots(this.getBoots());
-		inv.setLeggings(this.getLeggings());
-		inv.setChestPlate(this.getChestPlate());
-		inv.setHelmet(this.getHelmet());
+		for (int i = 0; i < 5; i++) {
+			inv.setSlot(i, this.getSlot(i));
+		}
 		return inv;
 	}
 	

@@ -24,6 +24,11 @@ public class InteractText implements InteractAction {
 	}
 
 	@Override
+	public String toString() {
+		return this.text;
+	}
+
+	@Override
 	public void onSet(Player player, String value) {
 		this.text = value;
 		player.sendMessage(ChatColor.GOLD + "Added Text Interact, Text: " + value);

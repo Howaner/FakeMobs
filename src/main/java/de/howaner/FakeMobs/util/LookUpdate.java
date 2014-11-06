@@ -13,11 +13,15 @@ public class LookUpdate implements Runnable {
 	
 	@Override
 	public void run() {
-		for (FakeMob mob : this.plugin.getMobs()) {
-			if (!mob.isPlayerLook()) continue;
-			List<Player> players = mob.getNearbyPlayers(5D);
-			for (Player p : players)
-				mob.sendLookPacket(p, p.getLocation());
+		try {
+			for (FakeMob mob : this.plugin.getMobs()) {
+				if (!mob.isPlayerLook()) continue;
+				List<Player> players = mob.getNearbyPlayers(5D);
+				for (Player p : players)
+					mob.sendLookPacket(p, p.getLocation());
+			}
+		} catch (Exception e) {
+			//Do Nothing
 		}
 	}
 	

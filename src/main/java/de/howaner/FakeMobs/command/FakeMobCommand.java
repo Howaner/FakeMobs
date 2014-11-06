@@ -6,7 +6,10 @@ import de.howaner.FakeMobs.interact.InteractType;
 import de.howaner.FakeMobs.merchant.MerchantOffer;
 import de.howaner.FakeMobs.util.Cache;
 import de.howaner.FakeMobs.util.FakeMob;
+import de.howaner.FakeMobs.util.ItemParser;
 import de.howaner.FakeMobs.util.MobShop;
+import java.util.ArrayList;
+import java.util.List;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -66,10 +69,11 @@ public class FakeMobCommand implements CommandExecutor {
 			}
 			FakeMob mob = this.plugin.spawnMob(loc, type);
 			if (mob == null) {
-				player.sendMessage(ChatColor.RED + "A error occurred while creating the Mob!");
+				player.sendMessage(ChatColor.RED + "An error occurred while creating the Mob!");
 				return true;
 			}
-			player.sendMessage(ChatColor.GREEN + "Created Mob with ID " + ChatColor.GRAY + "#" + mob.getId());
+			player.sendMessage(ChatColor.GREEN + "Created and selected Mob with ID " + ChatColor.GRAY + "#" + mob.getId());
+			Cache.selectedMobs.put(player, mob);
 			return true;
 		} else if (args[0].equalsIgnoreCase("select")) {
 			if (args.length != 1 && args.length != 2) return false;
@@ -150,7 +154,7 @@ public class FakeMobCommand implements CommandExecutor {
 				return true;
 			}
 			mob.setSitting(!mob.isSitting());
-			mob.updateCustomName();
+			mob.updateMetadata();
 			this.plugin.saveMobsFile();
 			player.sendMessage(ChatColor.GREEN + "Sitting Status changed: " + ChatColor.GRAY + ((mob.isSitting()) ? "on" : "off"));
 			return true;
@@ -191,7 +195,7 @@ public class FakeMobCommand implements CommandExecutor {
 			player.sendMessage(ChatColor.GREEN + "Teleported Mob " + ChatColor.GRAY + "#" + mob.getId() + ChatColor.GREEN + "!");
 			return true;
 		} else if (args[0].equalsIgnoreCase("inv")) {
-			if (args.length != 3) return false;
+			if (args.length < 3) return false;
 			if (!player.hasPermission("FakeMobs.inv")) {
 				player.sendMessage(ChatColor.RED + "No permission!");
 				return true;
@@ -201,11 +205,19 @@ public class FakeMobCommand implements CommandExecutor {
 				player.sendMessage(ChatColor.RED + "You haven't a Selection!");
 				return true;
 			}
-			ItemStack item = Cache.generateItemStack(args[2]);
-			if (item == null) {
-				player.sendMessage(ChatColor.RED + "This Item doesn't exists!");
+			
+			List<String> itemArgs = new ArrayList<String>();
+			for (int i = 2; i < args.length; i++)
+				itemArgs.add(args[i]);
+			
+			ItemStack item;
+			try {
+				item = ItemParser.generateItemStack(itemArgs.toArray(new String[0]));
+			} catch (Exception e) {
+				player.sendMessage(ChatColor.RED + "Invalid item: " + e.getMessage());
 				return true;
 			}
+			
 			if (args[1].equalsIgnoreCase("hand")) {
 				mob.getInventory().setItemInHand(item);
 				player.sendMessage(ChatColor.GOLD + "Setted Item in Hand to " + item.getType().name() + "!");
@@ -223,6 +235,7 @@ public class FakeMobCommand implements CommandExecutor {
 				player.sendMessage(ChatColor.GOLD + "Setted Helmet to " + item.getType().name() + "!");
 			} else
 				return false;
+			
 			mob.updateInventory();
 			this.plugin.saveMobsFile();
 			return true;
@@ -258,40 +271,40 @@ public class FakeMobCommand implements CommandExecutor {
 				player.sendMessage(ChatColor.GREEN + "Villager Shop removed!");
 				return true;
 			} else if (args[1].equalsIgnoreCase("addItem")) {
-				if (args.length != 4 && args.length != 5) return false;
+				if (args.length < 3) return false;
 				if (!mob.haveShop()) {
 					player.sendMessage(ChatColor.RED + "This Mob haven't a Shop!");
 					return true;
 				}
-				ItemStack item1 = null;
-				ItemStack item2 = null;
-				ItemStack result = null;
 				
-				item1 = MobShop.toItemStack(args[2], player);
-				if (item1 == null) {
-					player.sendMessage(args[2] + " isn't a Item!");
-					return true;
+				StringBuilder builder = new StringBuilder();
+				for (int i = 2; i < args.length; i++) {
+					if (i != 2) builder.append(" ");
+					builder.append(args[i]);
 				}
 				
-				if (args.length == 4) {
-					result = MobShop.toItemStack(args[3], player);
-					if (result == null) {
-						player.sendMessage(args[3] + " isn't a Item!");
-						return true;
+				String[] items = builder.toString().split(";");
+				if (items.length != 2 && args.length != 3) return false;
+				
+				String state = "input";
+				ItemStack item1, item2 = null, result;
+				try {
+					item1 = ItemParser.generateItemStack(items[0].split(" "));
+					
+					if (items.length == 2) {
+						state = "result";
+						result = ItemParser.generateItemStack(items[1].split(" "));
+					} else {
+						state = "second input";
+						item2 = ItemParser.generateItemStack(items[1].split(" "));
+						
+						state = "result";
+						result = ItemParser.generateItemStack(items[2].split(" "));
 					}
-				} else if (args.length == 5) {
-					item2 = MobShop.toItemStack(args[3], player);
-					if (item2 == null) {
-						player.sendMessage(args[3] + " isn't a Item!");
-						return true;
-					}
-					result = MobShop.toItemStack(args[4], player);
-					if (result == null) {
-						player.sendMessage(args[4] + " isn't a Item!");
-						return true;
-					}
-				} else
-					return false;
+				} catch (Exception e) {
+					player.sendMessage(ChatColor.RED + "Invalid " + state + ": " + e.getMessage());
+					return true;
+				}
 				
 				MerchantOffer offer = new MerchantOffer(item1, item2, result);
 				mob.getShop().addItem(offer);
@@ -504,7 +517,7 @@ public class FakeMobCommand implements CommandExecutor {
 			player.sendMessage(ChatColor.GRAY + "/FakeMob inv <hand/boots/leggings/chestplate/helmet> <Item> " + ChatColor.RED + "-- " + ChatColor.WHITE + "Set the Inventory of a Fakemob. Use none to delete.");
 			player.sendMessage(ChatColor.GRAY + "/FakeMob shop enable " + ChatColor.RED + "-- " + ChatColor.WHITE + "Enable the Shop");
 			player.sendMessage(ChatColor.GRAY + "/FakeMob shop disable " + ChatColor.RED + "-- " + ChatColor.WHITE + "Disable the Shop");
-			player.sendMessage(ChatColor.GRAY + "/FakeMob shop addItem <Item 1> [Item 2] <Output> " + ChatColor.RED + "-- " + ChatColor.WHITE + "Add a Item to the Shop");
+			player.sendMessage(ChatColor.GRAY + "/FakeMob shop addItem <Item 1>;[Item 2];<Output> " + ChatColor.RED + "-- " + ChatColor.WHITE + "Add a Item to the Shop");
 			player.sendMessage(ChatColor.GRAY + "/FakeMob shop removeItem <id> " + ChatColor.RED + "-- " + ChatColor.WHITE + "Remove a Item with this Id (you can see Id's in /Fakemob shop items");
 			player.sendMessage(ChatColor.GRAY + "/FakeMob shop clear " + ChatColor.RED + "-- " + ChatColor.WHITE + "Remove all Items from the Shop");
 			player.sendMessage(ChatColor.GRAY + "/FakeMob shop items " + ChatColor.RED + "-- " + ChatColor.WHITE + "Display all Items in the Shop");

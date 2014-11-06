@@ -54,47 +54,4 @@ public class MobShop {
 		this.items.remove(id);
 	}
 	
-	public static ItemStack toItemStack(String name) {
-		return toItemStack(name, null);
-	}
-	
-	public static ItemStack toItemStack(String name, Player player) {
-		if (name == null || name.isEmpty()) return null;
-		
-		if (name.equalsIgnoreCase("hand") && player != null)
-			return player.getItemInHand().clone();
-		
-		Material mat;
-		short data = 0;
-		int amount = 1;
-		String itemName = null;
-		if (name.contains("/")) {
-			itemName = name.split("/")[1];
-			name = name.split("/")[0];
-		}
-		if (name.contains(";")) {
-			try {
-				amount = Integer.parseInt(name.split(";")[1]);
-				name = name.split(";")[0];
-			} catch (Exception e) { return null; }
-		}
-		if (name.contains(":")) {
-			try {
-				data = Short.parseShort(name.split(":")[1]);
-				name = name.split(":")[0];
-			} catch (Exception e) { return null; }
-		}
-		mat = Material.matchMaterial(name);
-		if (mat == null) return null;
-		ItemStack stack = new ItemStack(mat, amount, data);
-		if (itemName != null) {
-			itemName = itemName.replace("_", " ");
-			itemName = ChatColor.translateAlternateColorCodes('&', itemName);
-			ItemMeta meta = stack.getItemMeta();
-			meta.setDisplayName(itemName);
-			stack.setItemMeta(meta);
-		}
-		return stack;
-	}
-	
 }

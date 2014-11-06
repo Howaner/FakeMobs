@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.howaner</groupId>
 	<artifactId>FakeMobs</artifactId>
-	<version>1.7.4</version>
+	<version>1.8</version>
 	<name>FakeMobs</name>
 	<description>You can spawn Fake Mobs</description>
 	<packaging>jar</packaging>
@@ -64,18 +64,13 @@
 	<dependencies>
 		<dependency>
 			<groupId>org.bukkit</groupId>
-			<artifactId>craftbukkit</artifactId>
-			<version>1.7.2-R0.3-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>org.bukkit</groupId>
 			<artifactId>bukkit</artifactId>
-			<version>1.7.2-R0.3-SNAPSHOT</version>
+			<version>1.7.10-R0.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.comphenix.protocol</groupId>
-			<artifactId>ProtocolLib</artifactId>
-			<version>3.1.0</version>
+			<artifactId>ProtocolLib-Spigot</artifactId>
+			<version>3.6.0-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 </project>
