@@ -60,7 +60,7 @@ public class FakeMobCommand implements CommandExecutor {
 					entityBuilder.append(t.name());
 					komma = true;
 				}
-				player.sendMessage(ChatColor.GOLD + "Avaible Entitys: " + ChatColor.WHITE + entityBuilder.toString());
+				player.sendMessage(ChatColor.GOLD + "Available Entitys: " + ChatColor.WHITE + entityBuilder.toString());
 				return true;
 			}
 			if (!type.isAlive()) {

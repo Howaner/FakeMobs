@@ -40,8 +40,7 @@ public class ProtocolListener implements PacketListener {
 			if (mob == null || player.getWorld() != mob.getWorld()) return;
 			
 			if (player.isDead()) return;
-			// Standard is 4. But I use 20 for better selection!
-			if (player.getLocation().distance(mob.getLocation()) > 20) {
+			if (player.getLocation().distance(mob.getLocation()) > 6) {
 				return;
 			}
 

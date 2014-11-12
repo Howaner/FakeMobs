@@ -107,9 +107,9 @@ public class FakeMobsPlugin extends JavaPlugin {
 		RemoveFakeMobEvent event = new RemoveFakeMobEvent(mob);
 		Bukkit.getPluginManager().callEvent(event);
 		
-		for (Player player : Bukkit.getOnlinePlayers())
-			if (player.getWorld() == mob.getWorld())
-				mob.sendDestroyPacket(player);
+		for (Player player : mob.getWorld().getPlayers()) {
+			mob.unloadPlayer(player);
+		}
 		
 		Map<Player, FakeMob> selectedMap = new HashMap<Player, FakeMob>();
 		selectedMap.putAll(Cache.selectedMobs);
@@ -132,8 +132,11 @@ public class FakeMobsPlugin extends JavaPlugin {
 		Bukkit.getPluginManager().callEvent(event);
 		if (event.isCancelled()) return null;
 		
-		for (Player player : loc.getWorld().getPlayers())
-			this.updatePlayerView(player);
+		for (Player player : loc.getWorld().getPlayers()) {
+			if (mob.isInRange(player)) {
+				mob.loadPlayer(player);
+			}
+		}
 		
 		this.mobs.put(id, mob);
 		this.saveMobsFile();
