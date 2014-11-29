@@ -38,9 +38,9 @@ public class DataWatchCreator {
 
 		// Add EntityInsentient defaults:
 		if (type != EntityType.PLAYER) {
-			watcher.setObject(11, (byte) 0); //Custom Name Visible (Minecraft 1.7)
+			watcher.setObject(11, (byte) 1); //Custom Name Visible (Minecraft 1.7)
 			watcher.setObject(10, ""); //Custom Name (Minecraft 1.7)
-			watcher.setObject(3, (byte) 0); //Custom Name Visible (Minecraft 1.8)
+			watcher.setObject(3, (byte) 1); //Custom Name Visible (Minecraft 1.8)
 			watcher.setObject(2, ""); //Custom Name (Minecraft 1.8)
 		}
 

@@ -141,12 +141,33 @@ public class ReflectionUtils {
 		
 		public Object getBuyItem3() {
 			try {
-				Method m = this.getNMSClass().getDeclaredMethod("getBuyItem3");
+				Method m = getNMSClass().getDeclaredMethod("getBuyItem3");
 				m.setAccessible(true);
 				return m.invoke(this.merchantRecipe);
 			} catch (Exception e) {
 				e.printStackTrace();
 				return null;
+			}
+		}
+
+		public int getMaxUses() {
+			try {
+				Field field = getNMSClass().getDeclaredField("maxUses");
+				field.setAccessible(true);
+				return (int) field.getByte(this.merchantRecipe);
+			} catch (Exception e) {
+				e.printStackTrace();
+				return 0;
+			}
+		}
+
+		public void setMaxUses(int maxUses) {
+			try {
+				Field field = getNMSClass().getDeclaredField("maxUses");
+				field.setAccessible(true);
+				field.set(this.merchantRecipe, maxUses);
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 		}
 		

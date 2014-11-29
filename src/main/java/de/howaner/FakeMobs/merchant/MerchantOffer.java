@@ -5,8 +5,8 @@ import de.howaner.FakeMobs.merchant.ReflectionUtils.OBCCraftItemStack;
 import org.bukkit.inventory.ItemStack;
 
 public class MerchantOffer {
-	
 	private ItemStack[] items = new ItemStack[3];
+	private int maxUses = Integer.MAX_VALUE;
 	
 	public MerchantOffer(ItemStack is1, ItemStack is2, ItemStack re) {
 		this.items[0] = is1;
@@ -22,16 +22,17 @@ public class MerchantOffer {
 		this.items[0] = OBCCraftItemStack.asBukkitCopy(handle.getBuyItem1());
 		this.items[1] = (handle.getBuyItem2() == null) ? null : OBCCraftItemStack.asBukkitCopy(handle.getBuyItem2());
 		this.items[2] = OBCCraftItemStack.asBukkitCopy(handle.getBuyItem3());
-		/*this.items[0] = CraftItemStack.asBukkitCopy(handle.getBuyItem1());
-		this.items[1] = (handle.getBuyItem3() == null ? null : CraftItemStack.asBukkitCopy(handle.getBuyItem2()));
-		this.items[2] = CraftItemStack.asBukkitCopy(handle.getBuyItem3());*/
 	}
 	
 	protected NMSMerchantRecipe getHandle() {
+		NMSMerchantRecipe nms;
 		if (this.items[1] == null)
-			return new NMSMerchantRecipe(OBCCraftItemStack.asNMSCopy(this.items[0]), OBCCraftItemStack.asNMSCopy(this.items[2]));
+			nms = new NMSMerchantRecipe(OBCCraftItemStack.asNMSCopy(this.items[0]), OBCCraftItemStack.asNMSCopy(this.items[2]));
 		else
-			return new NMSMerchantRecipe(OBCCraftItemStack.asNMSCopy(this.items[0]), OBCCraftItemStack.asNMSCopy(this.items[1]), OBCCraftItemStack.asNMSCopy(this.items[2]));
+			nms = new NMSMerchantRecipe(OBCCraftItemStack.asNMSCopy(this.items[0]), OBCCraftItemStack.asNMSCopy(this.items[1]), OBCCraftItemStack.asNMSCopy(this.items[2]));
+
+		nms.setMaxUses(this.maxUses);
+		return nms;
 	}
 	
 	public ItemStack getFirstInput() {
@@ -44,6 +45,14 @@ public class MerchantOffer {
 	
 	public ItemStack getOutput() {
 		return this.items[2];
+	}
+
+	public int getMaxUses() {
+		return this.maxUses;
+	}
+
+	public void setMaxUses(int maxUses) {
+		this.maxUses = maxUses;
 	}
 	
 }
