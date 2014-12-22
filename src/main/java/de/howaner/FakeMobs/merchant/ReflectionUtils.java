@@ -1,10 +1,13 @@
 package de.howaner.FakeMobs.merchant;
 
+import com.comphenix.protocol.wrappers.WrappedGameProfile;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -175,6 +178,76 @@ public class ReflectionUtils {
 			return this.merchantRecipe;
 		}
 		
+	}
+
+	public static class PlayerInfoAction {
+		public static Object UPDATE_GAME_MODE    = getNMSAction("UPDATE_GAME_MODE");
+		public static Object ADD_PLAYER          = getNMSAction("ADD_PLAYER");
+		public static Object UPDATE_DISPLAY_NAME = getNMSAction("UPDATE_DISPLAY_NAME");
+		public static Object REMOVE_PLAYER       = getNMSAction("REMOVE_PLAYER");
+
+		// Return: EnumPlayerInfoAction
+		private static Object getNMSAction(String name) {
+			try {
+				Field field = getNMSClass().getDeclaredField(name);
+				field.setAccessible(true);
+				return field.get(null);
+			} catch (Exception ex) {
+				ex.printStackTrace();
+				return null;
+			}
+		}
+
+		public static Class getNMSClass() {
+			return getClassByName(getNMSPackageName() + ".EnumPlayerInfoAction");
+		}
+	}
+
+	// Return: EnumGamemode
+	public static Object createNMSGameMode(GameMode gameMode) {
+		Class c = getClassByName(getNMSPackageName() + ".EnumGamemode");
+		try {
+			Method method = c.getDeclaredMethod("getById", int.class);
+			method.setAccessible(true);
+			return method.invoke(null, gameMode.getValue());
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			return null;
+		}
+	}
+
+	public static Object createPlayerInfoData(WrappedGameProfile profile, GameMode gameMode, int ping, String nickName) {
+		Object nmsGameMode = createNMSGameMode(gameMode);
+
+		try {
+			Constructor constructor = getClassByName(getNMSPackageName() + ".PlayerInfoData").getDeclaredConstructor(
+					getClassByName(getNMSPackageName() + ".PacketPlayOutPlayerInfo"),
+					getClassByName("com.mojang.authlib.GameProfile"),
+					int.class,
+					getClassByName(getNMSPackageName() + ".EnumGamemode"),
+					getClassByName(getNMSPackageName() + ".IChatBaseComponent")
+			);
+			constructor.setAccessible(true);
+			return constructor.newInstance(null, profile.getHandle(), ping, nmsGameMode, createNMSTextComponent(nickName));
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			return null;
+		}
+	}
+
+	public static Object createNMSTextComponent(String text) {
+		if (text == null || text.isEmpty()) {
+			return null;
+		}
+
+		Class c = getClassByName(getNMSPackageName() + ".ChatComponentText");
+		try {
+			Constructor constructor = c.getDeclaredConstructor(String.class);
+			return constructor.newInstance(text);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			return null;
+		}
 	}
 	
 	public static Object toEntityHuman(Player player) {

@@ -9,7 +9,6 @@ import org.bukkit.entity.Player;
 
 public class Merchant {
 	private NMSMerchant h;
-	private String title = null;
 	
 	public Merchant() {
 		this.h = new NMSMerchant();
@@ -17,11 +16,11 @@ public class Merchant {
 	}
 	
 	public String getTitle() {
-		return this.title;
+		return this.h.title;
 	}
 	
 	public void setTitle(String title) {
-		this.title = title;
+		this.h.title = title;
 	}
 	
 	public List<MerchantOffer> getOffers() {
@@ -65,7 +64,7 @@ public class Merchant {
 	}
 	
 	public void openTrading(Player player) {
-		this.h.openTrading(ReflectionUtils.toEntityHuman(player), this.title);
+		this.h.openTrading(ReflectionUtils.toEntityHuman(player));
 	}
 	
 	protected NMSMerchant getHandle() {
@@ -74,7 +73,9 @@ public class Merchant {
 	
 	@Override
 	public Merchant clone() {
-		return new Merchant().setOffers(getOffers()).setCustomer(getCustomer());
+		Merchant clone = new Merchant().setOffers(getOffers()).setCustomer(getCustomer());
+		clone.setTitle(this.getTitle());
+		return clone;
 	}
 	
 }

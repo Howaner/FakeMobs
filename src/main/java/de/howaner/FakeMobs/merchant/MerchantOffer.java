@@ -54,5 +54,12 @@ public class MerchantOffer {
 	public void setMaxUses(int maxUses) {
 		this.maxUses = maxUses;
 	}
+
+	@Override
+	public MerchantOffer clone() {
+		MerchantOffer clone = new MerchantOffer(this.getFirstInput(), this.getSecondInput(), this.getOutput());
+		clone.setMaxUses(this.getMaxUses());
+		return clone;
+	}
 	
 }

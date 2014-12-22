@@ -7,10 +7,14 @@ import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 import com.comphenix.protocol.wrappers.WrappedGameProfile;
 import com.google.common.base.Charsets;
 import de.howaner.FakeMobs.FakeMobsPlugin;
+import de.howaner.FakeMobs.merchant.ReflectionUtils;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
+import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.EntityType;
@@ -254,7 +258,7 @@ public class FakeMob {
 			this.sendEntitySpawnPacket(player);
 	}
 
-	public void sendPlayerSpawnPacket(Player player) {
+	public void sendPlayerSpawnPacket(final Player player) {
 		PacketContainer packet = FakeMobsPlugin.getPlugin().getProtocolManager().createPacket(PacketType.Play.Server.NAMED_ENTITY_SPAWN);
 
 		packet.getIntegers().write(0, this.getEntityId());
@@ -266,19 +270,29 @@ public class FakeMob {
 		packet.getBytes().write(0, (byte)(int)(this.loc.getYaw() * 256.0F / 360.0F)); //Yaw
 		packet.getBytes().write(1, (byte)(int)(this.loc.getPitch() * 256.0F / 360.0F)); //Pitch
 
-		WrappedGameProfile profile = new WrappedGameProfile(this.uniqueId, (this.getCustomName() == null) ? "No Name" : this.getCustomName());
+		final WrappedGameProfile profile = new WrappedGameProfile(this.uniqueId, (this.getCustomName() == null) ? "No Name" : this.getCustomName());
 
-		packet.getGameProfiles().write(0, profile);
+		final boolean isSpigot18 = (packet.getGameProfiles().size() == 0);
+		if (isSpigot18)
+			packet.getSpecificModifier(UUID.class).write(0, profile.getUUID());
+		else
+			packet.getGameProfiles().write(0, profile);
 		packet.getDataWatcherModifier().write(0, this.dataWatcher);
 
 		if (FakeMobsPlugin.getPlugin().getProtocolManager().getProtocolVersion(player) >= 47) {
 			PacketContainer infoPacket = FakeMobsPlugin.getPlugin().getProtocolManager().createPacket(PacketType.Play.Server.PLAYER_INFO);
 
-			infoPacket.getIntegers().write(0, 0); //Packet: Create
-			infoPacket.getIntegers().write(1, 1); //Gamemode Creative
-			infoPacket.getIntegers().write(2, 1); //Ping 1
+			if (isSpigot18) {
+				Object playerInfo = ReflectionUtils.createPlayerInfoData(profile, GameMode.SURVIVAL, 0, "");
+				infoPacket.getSpecificModifier(ReflectionUtils.PlayerInfoAction.getNMSClass()).write(0, ReflectionUtils.PlayerInfoAction.ADD_PLAYER);
+				infoPacket.getSpecificModifier(List.class).write(0, Arrays.asList(new Object[] { playerInfo }));
+			} else {
+				infoPacket.getIntegers().write(0, 0); //Packet: Create
+				infoPacket.getIntegers().write(1, 0); //Gamemode: Survival
+				infoPacket.getIntegers().write(2, 0); //Ping: 0
 
-			infoPacket.getGameProfiles().write(0, profile);
+				infoPacket.getGameProfiles().write(0, profile);
+			}
 
 			try {
 				FakeMobsPlugin.getPlugin().getProtocolManager().sendServerPacket(player, infoPacket);
@@ -286,6 +300,35 @@ public class FakeMob {
 				FakeMobsPlugin.log.log(Level.SEVERE, "Can''t send player info packet to {0}", player.getName());
 				e.printStackTrace();
 			}
+
+			Bukkit.getScheduler().runTaskLater(FakeMobsPlugin.getPlugin(), new Runnable() {
+				@Override
+				public void run() {
+					if (!FakeMob.this.isPlayerLoaded(player)) {
+						return;
+					}
+					PacketContainer infoPacket = FakeMobsPlugin.getPlugin().getProtocolManager().createPacket(PacketType.Play.Server.PLAYER_INFO);
+
+					if (isSpigot18) {
+						Object playerInfo = ReflectionUtils.createPlayerInfoData(profile, GameMode.SURVIVAL, 0, "");
+						infoPacket.getSpecificModifier(ReflectionUtils.PlayerInfoAction.getNMSClass()).write(0, ReflectionUtils.PlayerInfoAction.REMOVE_PLAYER);
+						infoPacket.getSpecificModifier(List.class).write(0, Arrays.asList(new Object[] { playerInfo }));
+					} else {
+						infoPacket.getIntegers().write(0, 4); //Packet: Remove
+						infoPacket.getIntegers().write(1, 0); //Gamemode: Survival
+						infoPacket.getIntegers().write(2, 0); //Ping: 0
+
+						infoPacket.getGameProfiles().write(0, profile);
+					}
+
+					try {
+						FakeMobsPlugin.getPlugin().getProtocolManager().sendServerPacket(player, infoPacket);
+					} catch (Exception e) {
+						FakeMobsPlugin.log.log(Level.WARNING, "Can''t send player info packet to {0}", player.getName());
+						e.printStackTrace();
+					}
+				}
+			}, 5L);
 		}
 
 		try {
@@ -412,15 +455,22 @@ public class FakeMob {
 			return;
 		}
 
-		if (FakeMobsPlugin.getPlugin().getProtocolManager().getProtocolVersion(player) >= 47) {
+		if (FakeMobsPlugin.getPlugin().getProtocolManager().getProtocolVersion(player) >= 47 && this.getType() == EntityType.PLAYER) {
 			WrappedGameProfile profile = new WrappedGameProfile(this.uniqueId, (this.getCustomName() == null) ? "No Name" : this.getCustomName());
 			PacketContainer infoPacket = FakeMobsPlugin.getPlugin().getProtocolManager().createPacket(PacketType.Play.Server.PLAYER_INFO);
 
-			infoPacket.getIntegers().write(0, 4);
-			infoPacket.getIntegers().write(1, 0);
-			infoPacket.getIntegers().write(2, 0);
+			boolean spigot18 = (infoPacket.getIntegers().size() == 0);
+			if (spigot18) {
+				Object playerInfo = ReflectionUtils.createPlayerInfoData(profile, GameMode.SURVIVAL, 0, "");
+				infoPacket.getSpecificModifier(ReflectionUtils.PlayerInfoAction.getNMSClass()).write(0, ReflectionUtils.PlayerInfoAction.REMOVE_PLAYER);
+				infoPacket.getSpecificModifier(List.class).write(0, Arrays.asList(new Object[] { playerInfo }));
+			} else {
+				infoPacket.getIntegers().write(0, 4);
+				infoPacket.getIntegers().write(1, 0);
+				infoPacket.getIntegers().write(2, 0);
 
-			infoPacket.getGameProfiles().write(0, profile);
+				infoPacket.getGameProfiles().write(0, profile);
+			}
 
 			try {
 				FakeMobsPlugin.getPlugin().getProtocolManager().sendServerPacket(player, infoPacket);
