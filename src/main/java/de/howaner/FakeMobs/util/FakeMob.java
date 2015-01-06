@@ -5,6 +5,7 @@ import de.howaner.FakeMobs.interact.InteractAction;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 import com.comphenix.protocol.wrappers.WrappedGameProfile;
+import com.comphenix.protocol.wrappers.WrappedSignedProperty;
 import com.google.common.base.Charsets;
 import de.howaner.FakeMobs.FakeMobsPlugin;
 import de.howaner.FakeMobs.merchant.ReflectionUtils;
@@ -27,13 +28,14 @@ public class FakeMob {
 	private Location loc;
 	private EntityType type;
 	private WrappedDataWatcher dataWatcher = null;
-	private List<Player> loadedPlayers = new ArrayList<Player>();
+	private final List<Player> loadedPlayers = new ArrayList<Player>();
 
 	private boolean sitting = false;
 	private boolean playerLook = false;
 	private MobInventory inventory = new MobInventory();
 	private MobShop shop = null;
-	private List<InteractAction> interacts = new ArrayList<InteractAction>();
+	private WrappedSignedProperty playerSkin;  // Only used if this.getType() == EntityType.PLAYER
+	private final List<InteractAction> interacts = new ArrayList<InteractAction>();
 	
 	public FakeMob(int id, Location loc, EntityType type) {
 		this.id = id;
@@ -87,6 +89,14 @@ public class FakeMob {
 	
 	public int getEntityId() {
 		return 2300 + this.id;
+	}
+
+	public WrappedSignedProperty getPlayerSkin() {
+		return this.playerSkin;
+	}
+
+	public void setPlayerSkin(WrappedSignedProperty skin) {
+		this.playerSkin = skin;
 	}
 	
 	public List<Player> getNearbyPlayers() {
@@ -168,7 +178,7 @@ public class FakeMob {
 		if (name != null && name.length() > 32) name = name.substring(0, 32);
 		this.name = name;
 
-		if (this.name.isEmpty()) {
+		if (this.name != null && this.name.isEmpty()) {
 			this.name = null;
 		}
 
@@ -271,6 +281,9 @@ public class FakeMob {
 		packet.getBytes().write(1, (byte)(int)(this.loc.getPitch() * 256.0F / 360.0F)); //Pitch
 
 		final WrappedGameProfile profile = new WrappedGameProfile(this.uniqueId, (this.getCustomName() == null) ? "No Name" : this.getCustomName());
+		if (this.playerSkin != null) {
+			profile.getProperties().put("textures", this.playerSkin);
+		}
 
 		final boolean isSpigot18 = (packet.getGameProfiles().size() == 0);
 		if (isSpigot18)

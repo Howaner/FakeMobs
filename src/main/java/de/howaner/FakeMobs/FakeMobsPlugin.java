@@ -2,6 +2,8 @@ package de.howaner.FakeMobs;
 
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
+import com.comphenix.protocol.wrappers.WrappedGameProfile;
+import com.comphenix.protocol.wrappers.WrappedSignedProperty;
 import de.howaner.FakeMobs.command.FakeMobCommand;
 import de.howaner.FakeMobs.event.RemoveFakeMobEvent;
 import de.howaner.FakeMobs.event.SpawnFakeMobEvent;
@@ -19,6 +21,7 @@ import de.howaner.FakeMobs.util.MobInventory;
 import de.howaner.FakeMobs.util.MobShop;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -121,12 +124,17 @@ public class FakeMobsPlugin extends JavaPlugin {
 		this.mobs.remove(id);
 		this.saveMobsFile();
 	}
-	
+
 	public FakeMob spawnMob(Location loc, EntityType type) {
+		return this.spawnMob(loc, type, null);
+	}
+	
+	public FakeMob spawnMob(Location loc, EntityType type, String customName) {
 		if (!type.isAlive()) return null;
 		
 		int id = this.getNewId();
 		FakeMob mob = new FakeMob(id, loc, type);
+		mob.setCustomName(customName);
 		
 		SpawnFakeMobEvent event = new SpawnFakeMobEvent(loc, type, mob);
 		Bukkit.getPluginManager().callEvent(event);
@@ -138,6 +146,43 @@ public class FakeMobsPlugin extends JavaPlugin {
 			}
 		}
 		
+		this.mobs.put(id, mob);
+		this.saveMobsFile();
+		return mob;
+	}
+
+	public FakeMob spawnPlayer(Location loc, String name) {
+		return this.spawnPlayer(loc, name, (WrappedSignedProperty) null);
+	}
+
+	public FakeMob spawnPlayer(Location loc, String name, Player skin) {
+		WrappedSignedProperty properties = null;
+		if (skin != null) {
+			WrappedGameProfile gameProfile = WrappedGameProfile.fromPlayer(skin);
+			Collection<WrappedSignedProperty> textures = gameProfile.getProperties().get("textures");
+			if (textures != null && !textures.isEmpty()) {
+				properties = textures.iterator().next();
+			}
+		}
+
+		return this.spawnPlayer(loc, name, properties);
+	}
+
+	public FakeMob spawnPlayer(Location loc, String name, WrappedSignedProperty skin) {
+		int id = this.getNewId();
+		FakeMob mob = new FakeMob(id, loc, EntityType.PLAYER);
+		mob.setCustomName(name);
+
+		SpawnFakeMobEvent event = new SpawnFakeMobEvent(loc, EntityType.PLAYER, mob);
+		Bukkit.getPluginManager().callEvent(event);
+		if (event.isCancelled()) return null;
+
+		for (Player player : loc.getWorld().getPlayers()) {
+			if (mob.isInRange(player)) {
+				mob.loadPlayer(player);
+			}
+		}
+
 		this.mobs.put(id, mob);
 		this.saveMobsFile();
 		return mob;
