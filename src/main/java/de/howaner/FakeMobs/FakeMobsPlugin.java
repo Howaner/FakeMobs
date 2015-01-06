@@ -172,6 +172,7 @@ public class FakeMobsPlugin extends JavaPlugin {
 		int id = this.getNewId();
 		FakeMob mob = new FakeMob(id, loc, EntityType.PLAYER);
 		mob.setCustomName(name);
+		mob.setPlayerSkin(skin);
 
 		SpawnFakeMobEvent event = new SpawnFakeMobEvent(loc, EntityType.PLAYER, mob);
 		Bukkit.getPluginManager().callEvent(event);
