@@ -139,7 +139,7 @@ public class FakeMob {
 	}
 
 	public boolean isInRange(Player player) {
-		return this.loc.getWorld() != player.getLocation().getWorld() && (this.loc.distance(player.getLocation()) <= 48D);
+		return this.loc.getWorld() == player.getLocation().getWorld() && (this.loc.distance(player.getLocation()) <= 48D);
 	}
 	
 	public int getId() {
