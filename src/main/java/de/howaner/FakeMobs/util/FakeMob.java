@@ -347,11 +347,12 @@ public class FakeMob {
 		try {
 			FakeMobsPlugin.getPlugin().getProtocolManager().sendServerPacket(player, packet);
 		} catch (Exception e) {
-			FakeMobsPlugin.log.log(Level.SEVERE, "Can''t send spawn packet to {0} from mob #{1}", new Object[]{player.getName(), this.getId()});
+			FakeMobsPlugin.log.log(Level.SEVERE, "Can''t send spawn packet to {0} from mob #{1}", new Object[]{ player.getName(), this.getId() });
 			e.printStackTrace();
 			return;
 		}
 
+		this.sendLookPacket(player, this.loc.getYaw());
 		this.sendInventoryPacket(player);
 	}
 	
