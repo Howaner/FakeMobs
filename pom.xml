@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.howaner</groupId>
 	<artifactId>FakeMobs</artifactId>
-	<version>1.8.2</version>
+	<version>1.8.3</version>
 	<name>FakeMobs</name>
 	<description>You can spawn Fake Mobs</description>
 	<packaging>jar</packaging>
@@ -65,7 +65,7 @@
 		<dependency>
 			<groupId>org.bukkit</groupId>
 			<artifactId>bukkit</artifactId>
-			<version>1.7.9-R0.2</version>
+			<version>1.7.10-R0.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.comphenix.protocol</groupId>
