@@ -352,7 +352,7 @@ public class FakeMob {
 						e.printStackTrace();
 					}
 				}
-			}, 60L);
+			}, (this.playerSkin == null ? 5L : 60L));
 		}
 
 		try {
