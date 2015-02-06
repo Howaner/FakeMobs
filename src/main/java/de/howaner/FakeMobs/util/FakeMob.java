@@ -252,9 +252,20 @@ public class FakeMob {
 		for (Player player : this.loadedPlayers) {
 			if (this.getType() == EntityType.PLAYER) {
 				this.sendDestroyPacket(player);
-				this.sendSpawnPacket(player);
 			} else
 				this.sendMetaPacket(player);
+		}
+
+		// Need a 5 tick delay because mojang did mistakes in 1.8 ...
+		if (this.getType() == EntityType.PLAYER) {
+			Bukkit.getScheduler().runTaskLater(FakeMobsPlugin.getPlugin(), new Runnable() {
+				@Override
+				public void run() {
+					for (Player player : FakeMob.this.loadedPlayers) {
+						FakeMob.this.sendSpawnPacket(player);
+					}
+				}
+			}, 5L);
 		}
 	}
 
@@ -341,7 +352,7 @@ public class FakeMob {
 						e.printStackTrace();
 					}
 				}
-			}, 5L);
+			}, 60L);
 		}
 
 		try {
