@@ -5,6 +5,7 @@ import de.howaner.FakeMobs.event.PlayerInteractFakeMobEvent;
 import de.howaner.FakeMobs.event.PlayerInteractFakeMobEvent.Action;
 import de.howaner.FakeMobs.util.Cache;
 import de.howaner.FakeMobs.util.FakeMob;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
@@ -12,10 +13,12 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 
 public class MobListener implements Listener {
 	private FakeMobsPlugin plugin;
@@ -47,6 +50,8 @@ public class MobListener implements Listener {
 			return;
 
 		Player player = event.getPlayer();
+		if (player.getHealth() <= 0.0D) return;  // player is dead
+
 		Chunk oldChunk = event.getFrom().getChunk();
 		Chunk newChunk = event.getTo().getChunk();
 
@@ -80,6 +85,26 @@ public class MobListener implements Listener {
 		Player player = event.getPlayer();
 		if (Cache.selectedMobs.containsKey(player))
 			Cache.selectedMobs.remove(player);
+		for (FakeMob mob : this.plugin.getMobs())
+			mob.unloadPlayer(player);
+	}
+
+	@EventHandler
+	public void onPlayerRespawn(PlayerRespawnEvent event) {
+		final Player player = event.getPlayer();
+
+		Bukkit.getScheduler().runTaskLater(FakeMobsPlugin.getPlugin(), new Runnable() {
+			@Override
+			public void run() {
+				MobListener.this.plugin.updatePlayerView(player);
+			}
+		}, 5L);
+	}
+
+	@EventHandler
+	public void onPlayerDeath(PlayerDeathEvent event) {
+		Player player = event.getEntity();
+
 		for (FakeMob mob : this.plugin.getMobs())
 			mob.unloadPlayer(player);
 	}
