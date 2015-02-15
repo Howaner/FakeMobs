@@ -19,6 +19,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 
 public class MobListener implements Listener {
 	private FakeMobsPlugin plugin;
@@ -39,6 +40,18 @@ public class MobListener implements Listener {
 		
 		if (event.getAction() == Action.RIGHT_CLICK && mob.haveShop())
 			mob.getShop().openShop(player, (mob.getCustomName() != null && !mob.getCustomName().isEmpty()) ? mob.getCustomName() : null);
+	}
+
+	@EventHandler
+	public void onPlayerTeleport(PlayerTeleportEvent event) {
+		final Player player = event.getPlayer();
+
+		Bukkit.getScheduler().runTaskLater(FakeMobsPlugin.getPlugin(), new Runnable() {
+			@Override
+			public void run() {
+				MobListener.this.plugin.updatePlayerView(player);
+			}
+		}, 5L);
 	}
 	
 	@EventHandler
