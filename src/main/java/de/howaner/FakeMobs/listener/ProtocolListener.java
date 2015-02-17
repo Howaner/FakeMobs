@@ -30,13 +30,13 @@ public class ProtocolListener implements PacketListener {
 	@Override
 	public void onPacketReceiving(PacketEvent pe) {
 		PacketContainer packet = pe.getPacket();
-		Player player = pe.getPlayer();
+		final Player player = pe.getPlayer();
 		
 		if (packet.getType() == PacketType.Play.Client.USE_ENTITY) {
 			int id = packet.getIntegers().read(0) - 2300;
 
 			if (id < 0) return;
-			FakeMob mob = this.plugin.getMob(id);
+			final FakeMob mob = this.plugin.getMob(id);
 			if (mob == null || player.getWorld() != mob.getWorld()) return;
 			
 			if (player.isDead()) return;
@@ -44,7 +44,7 @@ public class ProtocolListener implements PacketListener {
 				return;
 			}
 
-			Action action = null;
+			final Action action;
 			try {
 				Field field = packet.getEntityUseActions().getField(0);
 				field.setAccessible(true);
@@ -63,9 +63,14 @@ public class ProtocolListener implements PacketListener {
 				return;
 			}
 
-			PlayerInteractFakeMobEvent event = new PlayerInteractFakeMobEvent(player, mob, action);
-			Bukkit.getPluginManager().callEvent(event);
 			pe.setCancelled(true);
+			Bukkit.getScheduler().runTask(this.plugin, new Runnable() {
+				@Override
+				public void run() {
+					PlayerInteractFakeMobEvent event = new PlayerInteractFakeMobEvent(player, mob, action);
+					Bukkit.getPluginManager().callEvent(event);
+				}
+			});
 		}
 	}
 
