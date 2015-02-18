@@ -1,6 +1,7 @@
 package de.howaner.FakeMobs.listener;
 
 import de.howaner.FakeMobs.FakeMobsPlugin;
+import de.howaner.FakeMobs.adjuster.MyWorldAccess;
 import de.howaner.FakeMobs.event.PlayerInteractFakeMobEvent;
 import de.howaner.FakeMobs.event.PlayerInteractFakeMobEvent.Action;
 import de.howaner.FakeMobs.util.Cache;
@@ -11,6 +12,7 @@ import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -20,12 +22,24 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.event.world.WorldInitEvent;
+import org.bukkit.event.world.WorldUnloadEvent;
 
 public class MobListener implements Listener {
 	private FakeMobsPlugin plugin;
 	
 	public MobListener(FakeMobsPlugin plugin) {
 		this.plugin = plugin;
+	}
+
+	@EventHandler (priority = EventPriority.HIGHEST)
+	public void onWorldInit(WorldInitEvent event) {
+		MyWorldAccess.registerWorldAccess(event.getWorld());
+	}
+
+	@EventHandler (priority = EventPriority.HIGHEST)
+	public void onWorldUnload(WorldUnloadEvent event) {
+		MyWorldAccess.unregisterWorldAccess(event.getWorld());
 	}
 
 	@EventHandler

@@ -4,6 +4,7 @@ import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.wrappers.WrappedGameProfile;
 import com.comphenix.protocol.wrappers.WrappedSignedProperty;
+import de.howaner.FakeMobs.adjuster.MyWorldAccess;
 import de.howaner.FakeMobs.command.FakeMobCommand;
 import de.howaner.FakeMobs.event.RemoveFakeMobEvent;
 import de.howaner.FakeMobs.event.SpawnFakeMobEvent;
@@ -13,6 +14,7 @@ import de.howaner.FakeMobs.listener.InteractListener;
 import de.howaner.FakeMobs.listener.MobListener;
 import de.howaner.FakeMobs.listener.ProtocolListener;
 import de.howaner.FakeMobs.merchant.MerchantOffer;
+import de.howaner.FakeMobs.merchant.ReflectionUtils;
 import de.howaner.FakeMobs.util.Cache;
 import de.howaner.FakeMobs.util.Config;
 import de.howaner.FakeMobs.util.FakeMob;
@@ -20,12 +22,14 @@ import de.howaner.FakeMobs.util.LookUpdate;
 import de.howaner.FakeMobs.util.MobInventory;
 import de.howaner.FakeMobs.util.MobShop;
 import java.io.File;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
@@ -64,6 +68,10 @@ public class FakeMobsPlugin extends JavaPlugin {
 		
 		Bukkit.getScheduler().scheduleAsyncRepeatingTask(this, new LookUpdate(this), 5L, 5L);
 		this.pManager.addPacketListener(pListener = new ProtocolListener(this));
+
+		for (World world : Bukkit.getWorlds()) {
+			MyWorldAccess.registerWorldAccess(world);
+		}
 		
 		log.info("Plugin enabled!");
 	}
@@ -76,6 +84,10 @@ public class FakeMobsPlugin extends JavaPlugin {
 			for (Player player : Bukkit.getOnlinePlayers())
 				if (mob.getWorld() == player.getWorld())
 					mob.sendDestroyPacket(player);
+
+		for (World world : Bukkit.getWorlds()) {
+			MyWorldAccess.unregisterWorldAccess(world);
+		}
 		
 		log.info("Plugin disabled!");
 	}
@@ -384,6 +396,24 @@ public class FakeMobsPlugin extends JavaPlugin {
 			config.save(new File("plugins/FakeMobs/mobs.yml"));
 		} catch (Exception e) {
 			e.printStackTrace();
+		}
+	}
+
+	public void adjustEntityCount() {
+		try {
+			Class entityClass = Class.forName(ReflectionUtils.getNMSPackageName() + ".Entity");
+
+			Field field = entityClass.getDeclaredField("entityCount");
+			field.setAccessible(true);
+			int currentCount = field.getInt(null);
+
+			while (this.existsMob(currentCount)) {
+				currentCount++;
+			}
+
+			field.set(null, currentCount);
+		} catch (Exception ex) {
+			this.getLogger().log(Level.WARNING, "Can't adjust entity count", ex);
 		}
 	}
 	

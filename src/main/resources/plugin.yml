@@ -1,7 +1,7 @@
 name: FakeMobs
-version: 1.8.4
+version: ${project.version}
 author: Howaner
-description: You can spawn Fake Mobs
+description: A simple npc plugin
 depend: [ProtocolLib]
 main: de.howaner.FakeMobs.FakeMobsPlugin
 
