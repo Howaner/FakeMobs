@@ -407,11 +407,13 @@ public class FakeMobsPlugin extends JavaPlugin {
 			field.setAccessible(true);
 			int currentCount = field.getInt(null);
 
-			while (this.existsMob(currentCount)) {
-				currentCount++;
-			}
+			if (currentCount >= 2300) {
+				while (this.existsMob(currentCount - 2300)) {
+					currentCount++;
+				}
 
-			field.set(null, currentCount);
+				field.set(null, currentCount);
+			}
 		} catch (Exception ex) {
 			this.getLogger().log(Level.WARNING, "Can't adjust entity count", ex);
 		}
