@@ -7,6 +7,7 @@ import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 import com.comphenix.protocol.wrappers.WrappedGameProfile;
 import com.comphenix.protocol.wrappers.WrappedSignedProperty;
 import com.google.common.base.Charsets;
+import com.google.common.collect.Multimap;
 import de.howaner.FakeMobs.FakeMobsPlugin;
 import de.howaner.FakeMobs.merchant.ReflectionUtils;
 import java.util.ArrayList;
@@ -34,7 +35,7 @@ public class FakeMob {
 	private boolean playerLook = false;
 	private MobInventory inventory = new MobInventory();
 	private MobShop shop = null;
-	private WrappedSignedProperty playerSkin;  // Only used if this.getType() == EntityType.PLAYER
+	private Multimap<String, WrappedSignedProperty> playerSkin;  // Only used if this.getType() == EntityType.PLAYER
 	private final List<InteractAction> interacts = new ArrayList<InteractAction>();
 	
 	public FakeMob(int id, Location loc, EntityType type) {
@@ -91,12 +92,16 @@ public class FakeMob {
 		return 2300 + this.id;
 	}
 
-	public WrappedSignedProperty getPlayerSkin() {
+	public Multimap<String, WrappedSignedProperty> getPlayerSkin() {
 		return this.playerSkin;
 	}
 
-	public void setPlayerSkin(WrappedSignedProperty skin) {
+	public void setPlayerSkin(Multimap<String, WrappedSignedProperty> skin) {
 		this.playerSkin = skin;
+	}
+
+	public void setPlayerSkin(Player player) {
+		this.playerSkin = WrappedGameProfile.fromPlayer(player).getProperties();
 	}
 	
 	public List<Player> getNearbyPlayers() {
@@ -293,7 +298,7 @@ public class FakeMob {
 
 		final WrappedGameProfile profile = new WrappedGameProfile(this.uniqueId, (this.getCustomName() == null) ? "No Name" : this.getCustomName());
 		if (this.playerSkin != null) {
-			profile.getProperties().put("textures", this.playerSkin);
+			profile.getProperties().putAll(this.playerSkin);
 		}
 
 		final boolean isSpigot18 = (packet.getGameProfiles().size() == 0);

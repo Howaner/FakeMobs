@@ -4,6 +4,7 @@ import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.wrappers.WrappedGameProfile;
 import com.comphenix.protocol.wrappers.WrappedSignedProperty;
+import com.google.common.collect.Multimap;
 import de.howaner.FakeMobs.adjuster.MyWorldAccess;
 import de.howaner.FakeMobs.command.FakeMobCommand;
 import de.howaner.FakeMobs.event.RemoveFakeMobEvent;
@@ -24,7 +25,6 @@ import de.howaner.FakeMobs.util.MobShop;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -164,23 +164,14 @@ public class FakeMobsPlugin extends JavaPlugin {
 	}
 
 	public FakeMob spawnPlayer(Location loc, String name) {
-		return this.spawnPlayer(loc, name, (WrappedSignedProperty) null);
+		return this.spawnPlayer(loc, name, (Multimap<String, WrappedSignedProperty>) null);
 	}
 
 	public FakeMob spawnPlayer(Location loc, String name, Player skin) {
-		WrappedSignedProperty properties = null;
-		if (skin != null) {
-			WrappedGameProfile gameProfile = WrappedGameProfile.fromPlayer(skin);
-			Collection<WrappedSignedProperty> textures = gameProfile.getProperties().get("textures");
-			if (textures != null && !textures.isEmpty()) {
-				properties = textures.iterator().next();
-			}
-		}
-
-		return this.spawnPlayer(loc, name, properties);
+		return this.spawnPlayer(loc, name, WrappedGameProfile.fromPlayer(skin).getProperties());
 	}
 
-	public FakeMob spawnPlayer(Location loc, String name, WrappedSignedProperty skin) {
+	public FakeMob spawnPlayer(Location loc, String name, Multimap<String, WrappedSignedProperty> skin) {
 		int id = this.getNewId();
 		FakeMob mob = new FakeMob(id, loc, EntityType.PLAYER);
 		mob.setCustomName(name);
