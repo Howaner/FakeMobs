@@ -90,10 +90,10 @@ public class MobInventory {
 	public boolean isEmpty() {
 		for (ItemStack item : this.items) {
 			if (item != null && item.getType() != Material.AIR) {
-				return true;
+				return false;
 			}
 		}
-		return false;
+		return true;
 	}
 	
 	@Override
