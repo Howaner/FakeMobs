@@ -51,11 +51,11 @@ public class Merchant {
 	}
 	
 	public boolean hasCustomer() {
-		return this.h.b() != null;
+		return this.h.getEntityHuman() != null;
 	}
 	
 	public Player getCustomer() {
-		return (Player)(this.h.b() == null ? null : this.h.getBukkitEntity());
+		return (Player)(this.h.getEntityHuman() == null ? null : this.h.getBukkitEntity());
 	}
 	
 	public Merchant setCustomer(Player player) {

@@ -1,6 +1,5 @@
 package de.howaner.FakeMobs.merchant;
 
-import com.comphenix.protocol.wrappers.WrappedGameProfile;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -185,6 +184,7 @@ public class ReflectionUtils {
 		public static Object ADD_PLAYER          = getNMSAction("ADD_PLAYER");
 		public static Object UPDATE_DISPLAY_NAME = getNMSAction("UPDATE_DISPLAY_NAME");
 		public static Object REMOVE_PLAYER       = getNMSAction("REMOVE_PLAYER");
+		private static Class nmsClass;
 
 		// Return: EnumPlayerInfoAction
 		private static Object getNMSAction(String name) {
@@ -199,13 +199,25 @@ public class ReflectionUtils {
 		}
 
 		public static Class getNMSClass() {
-			return getClassByName(getNMSPackageName() + ".EnumPlayerInfoAction");
+			if (nmsClass == null) {
+				nmsClass = getClassByName(getNMSPackageName() + ".PacketPlayOutPlayerInfo$EnumPlayerInfoAction"); // Spigot 1.8.3
+				if (nmsClass == null) {
+					// Spigot 1.8.0
+					nmsClass = getClassByName(getNMSPackageName() + ".EnumPlayerInfoAction");
+				}
+			}
+			return nmsClass;
 		}
 	}
 
 	// Return: EnumGamemode
 	public static Object createNMSGameMode(GameMode gameMode) {
-		Class c = getClassByName(getNMSPackageName() + ".EnumGamemode");
+		Class c = getClassByName(getNMSPackageName() + ".EnumGamemode");  // Spigot 1.8.0
+		if (c == null) {
+			// Spigot 1.8.3
+			c = getClassByName(getNMSPackageName() + ".WorldSettings$EnumGamemode");
+		}
+
 		try {
 			Method method = c.getDeclaredMethod("getById", int.class);
 			method.setAccessible(true);
@@ -216,19 +228,28 @@ public class ReflectionUtils {
 		}
 	}
 
-	public static Object createPlayerInfoData(WrappedGameProfile profile, GameMode gameMode, int ping, String nickName) {
+	public static Object createPlayerInfoData(Object gameProfile, GameMode gameMode, int ping, String nickName) {
+		boolean is_1_8_3 = true;
+		Class playerInfoDataClass = getClassByName(getNMSPackageName() + ".PacketPlayOutPlayerInfo$PlayerInfoData");
+
+		if (playerInfoDataClass == null) {
+			// Spigot 1.8
+			playerInfoDataClass = getClassByName(getNMSPackageName() + ".PlayerInfoData");
+			is_1_8_3 = false;
+		}
+
 		Object nmsGameMode = createNMSGameMode(gameMode);
 
 		try {
-			Constructor constructor = getClassByName(getNMSPackageName() + ".PlayerInfoData").getDeclaredConstructor(
+			Constructor constructor = playerInfoDataClass.getDeclaredConstructor(
 					getClassByName(getNMSPackageName() + ".PacketPlayOutPlayerInfo"),
 					getClassByName("com.mojang.authlib.GameProfile"),
 					int.class,
-					getClassByName(getNMSPackageName() + ".EnumGamemode"),
+					nmsGameMode.getClass(),
 					getClassByName(getNMSPackageName() + ".IChatBaseComponent")
 			);
 			constructor.setAccessible(true);
-			return constructor.newInstance(null, profile.getHandle(), ping, nmsGameMode, createNMSTextComponent(nickName));
+			return constructor.newInstance(null, gameProfile, ping, nmsGameMode, createNMSTextComponent(nickName));
 		} catch (Exception ex) {
 			ex.printStackTrace();
 			return null;
@@ -266,7 +287,7 @@ public class ReflectionUtils {
 		try {
 			return Class.forName(name);
 		} catch (Exception e) {
-			e.printStackTrace();
+			// Class not found
 			return null;
 		}
 	}

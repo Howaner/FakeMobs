@@ -18,11 +18,11 @@ public class NMSMerchant implements java.lang.reflect.InvocationHandler {
 			Class entityHuman = ReflectionUtils.getClassByName(ReflectionUtils.getNMSPackageName() + ".EntityHuman");
 			if (m.getName().equals("a_") && args.length == 1 && args[0] != null && args[0].getClass().isInstance(entityHuman))
 				this.a_(args[0]);
-			else if (m.getName().equals("b") || m.getName().equals("m_") || m.getName().equals("u_")) //m_ = 1.6.4, b = 1.7.4, u_ = Spigot 1.8
-				return this.b();
+			else if (m.getName().equals("b") || m.getName().equals("m_") || m.getName().equals("u_") || m.getName().equals("v_")) //m_ = 1.6.4, b = 1.7.4, u_ = Spigot 1.8, v_ = Spigot 1.8.3
+				return this.getEntityHuman();
 			else if (m.getName().equals("getOffers") && args.length == 1)
 				return this.getOffers(args[0]);
-			else if (m.getName().equals("a"))
+			else if (m.getName().equals("a") && args.length == 1)
 				this.a(args[0]);
 			else if (m.getName().equals("getScoreboardDisplayName"))
 				return this.getScoreboardDisplayName();
@@ -40,7 +40,7 @@ public class NMSMerchant implements java.lang.reflect.InvocationHandler {
 		this.c = player;
 	}
 
-	public Object b() { // Return Class = EntityHuman
+	public Object getEntityHuman() { // Return Class = EntityHuman
 		return this.c;
 	}
 
