@@ -313,7 +313,7 @@ public class FakeMob {
 			PacketContainer infoPacket = FakeMobsPlugin.getPlugin().getProtocolManager().createPacket(PacketType.Play.Server.PLAYER_INFO);
 
 			if (isSpigot18) {
-				Object playerInfo = ReflectionUtils.createPlayerInfoData(profile.getHandle(), GameMode.SURVIVAL, 0, "");
+				Object playerInfo = ReflectionUtils.createPlayerInfoData(profile.getHandle(), GameMode.SURVIVAL, 0, " ");
 				infoPacket.getSpecificModifier(ReflectionUtils.PlayerInfoAction.getNMSClass()).write(0, ReflectionUtils.PlayerInfoAction.ADD_PLAYER);
 				infoPacket.getSpecificModifier(List.class).write(0, Arrays.asList(new Object[] { playerInfo }));
 			} else {
