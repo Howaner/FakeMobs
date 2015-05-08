@@ -22,6 +22,9 @@ permissions:
   FakeMobs.sitting:
     description: Can sit the Fake Mob
     default: op
+  FakeMobs.invisibility:
+    description: Can make a Fake Mob Invisibility
+    default: op
   FakeMobs.look:
     description: Can change the look Function of a Mob
     default: op
@@ -37,6 +40,9 @@ permissions:
   FakeMobs.interact:
     description: Permission to manage the Interact Actions of a Fake mob
     default: op
+  FakeMobs.skin:
+    description: Permission to set the skin from a player
+    default: op
   FakeMobs.remove:
     description: Remove Fake Mobs
     default: op
@@ -49,11 +55,13 @@ permissions:
       FakeMobs.select: true
       FakeMobs.name: true
       FakeMobs.sitting: true
+      FakeMobs.invisibility: true
       FakeMobs.look: true
       FakeMobs.teleport: true
       FakeMobs.inv: true
       FakeMobs.shop: true
       FakeMobs.interact: true
+      FakeMobs.skin: true
       FakeMobs.remove: true
       FakeMobs.help: true
     default: op

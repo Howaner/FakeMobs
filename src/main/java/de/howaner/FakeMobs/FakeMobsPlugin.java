@@ -4,6 +4,7 @@ import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.wrappers.WrappedGameProfile;
 import com.comphenix.protocol.wrappers.WrappedSignedProperty;
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import de.howaner.FakeMobs.adjuster.MyWorldAccess;
 import de.howaner.FakeMobs.command.FakeMobCommand;
@@ -22,6 +23,7 @@ import de.howaner.FakeMobs.util.FakeMob;
 import de.howaner.FakeMobs.util.LookUpdate;
 import de.howaner.FakeMobs.util.MobInventory;
 import de.howaner.FakeMobs.util.MobShop;
+import de.howaner.FakeMobs.util.SkinQueue;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -48,6 +50,7 @@ public class FakeMobsPlugin extends JavaPlugin {
 	private ProtocolManager pManager;
 	private final Map<Integer, FakeMob> mobs = new HashMap<Integer, FakeMob>();
 	private ProtocolListener pListener;
+	private SkinQueue skinQueue;
 	
 	@Override
 	public void onEnable() {
@@ -55,6 +58,9 @@ public class FakeMobsPlugin extends JavaPlugin {
 		log = this.getLogger();
 		this.pManager = ProtocolLibrary.getProtocolManager();
 		this.loadMobsFile();
+
+		this.skinQueue = new SkinQueue();
+		this.skinQueue.start();
 		
 		if (!Config.configFile.exists()) Config.save();
 		Config.load();
@@ -90,6 +96,10 @@ public class FakeMobsPlugin extends JavaPlugin {
 		}
 		
 		log.info("Plugin disabled!");
+	}
+
+	public SkinQueue getSkinQueue() {
+		return this.skinQueue;
 	}
 	
 	public boolean existsMob(int id) {
@@ -271,6 +281,8 @@ public class FakeMobsPlugin extends JavaPlugin {
 			if (section.isSet("Name") && section.getString("Name").length() <= 16)
 				mob.setCustomName(section.getString("Name"));
 			mob.setSitting(section.getBoolean("Sitting"));
+			if (section.contains("Invisibility"))
+				mob.setInvisibility(section.getBoolean("Invisibility"));
 			mob.setPlayerLook(section.getBoolean("PlayerLook"));
 			
 			if (section.contains("Inventory")) {
@@ -323,11 +335,24 @@ public class FakeMobsPlugin extends JavaPlugin {
 					mob.addInteractAction(action);
 				}
 			}
+
+			if (mob.getType() == EntityType.PLAYER && section.contains("Skin")) {
+				ConfigurationSection skinsSection = section.getConfigurationSection("Skin");
+				Multimap<String, WrappedSignedProperty> skins = ArrayListMultimap.create();
+
+				for (String k : skinsSection.getKeys(false)) {
+					ConfigurationSection skinSection = skinsSection.getConfigurationSection(k);
+					WrappedSignedProperty property = new WrappedSignedProperty(skinSection.getString("Name"), skinSection.getString("Value"), skinSection.getString("Signature"));
+					skins.put(property.getName(), property);
+				}
+
+				mob.setPlayerSkin(skins);
+			}
 			
 			this.mobs.put(id, mob);
 		}
 		
-		log.info("Loaded " + this.mobs.size() + " Mobs!");
+		log.info("Loaded " + this.mobs.size() + " mobs!");
 	}
 	
 	public void saveMobsFile() {
@@ -345,6 +370,7 @@ public class FakeMobsPlugin extends JavaPlugin {
 			if (mob.getCustomName() != null)
 				section.set("Name", mob.getCustomName());
 			section.set("Sitting", mob.isSitting());
+			section.set("Invisibility", mob.isInvisibility());
 			section.set("PlayerLook", mob.isPlayerLook());
 			
 			if (!mob.getInventory().isEmpty()) {
@@ -379,6 +405,19 @@ public class FakeMobsPlugin extends JavaPlugin {
 					ConfigurationSection interactSection = interactsSection.createSection("#" + String.valueOf(i));
 					interactSection.set("Type", action.getType().name());
 					action.saveToConfig(interactSection);
+				}
+			}
+
+			if (mob.getType() == EntityType.PLAYER && mob.getPlayerSkin() != null && !mob.getPlayerSkin().isEmpty()) {
+				ConfigurationSection skinsSection = section.createSection("Skin");
+				int i = 0;
+
+				for (WrappedSignedProperty property : mob.getPlayerSkin().values()) {
+					ConfigurationSection skinSection = skinsSection.createSection("Property-" + String.valueOf(i));
+					skinSection.set("Name", property.getName());
+					skinSection.set("Value", property.getValue());
+					skinSection.set("Signature", property.getSignature());
+					i++;
 				}
 			}
 		}

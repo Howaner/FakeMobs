@@ -40,7 +40,7 @@ public class ProtocolListener implements PacketListener {
 			if (mob == null || player.getWorld() != mob.getWorld()) return;
 			
 			if (player.isDead()) return;
-			if (player.getLocation().distance(mob.getLocation()) > 6) {
+			if (player.getLocation().distance(mob.getLocation()) > 8) {
 				return;
 			}
 

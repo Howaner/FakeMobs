@@ -32,6 +32,7 @@ public class FakeMob {
 	private final List<Player> loadedPlayers = new ArrayList<Player>();
 
 	private boolean sitting = false;
+	private boolean invisibility = false;
 	private boolean playerLook = false;
 	private MobInventory inventory = new MobInventory();
 	private MobShop shop = null;
@@ -170,6 +171,10 @@ public class FakeMob {
 	public boolean isSitting() {
 		return this.sitting;
 	}
+
+	public boolean isInvisibility() {
+		return this.invisibility;
+	}
 	
 	public boolean isPlayerLook() {
 		return this.playerLook;
@@ -207,12 +212,31 @@ public class FakeMob {
 	
 	public void setSitting(boolean sitting) {
 		if (this.type != EntityType.OCELOT && this.type != EntityType.WOLF && this.type != EntityType.PLAYER) return;
+		if (this.sitting == sitting) return;
 		this.sitting = sitting;
 
 		if (this.getType() == EntityType.PLAYER) {
-			this.dataWatcher.setObject(0, (byte) ((sitting) ? 0x02 : 0x00));
-		} else {
+			byte current = this.dataWatcher.getByte(0);
+			if (sitting)
+				this.dataWatcher.setObject(0, (byte) (current | 1 << 1));
+			else
+				this.dataWatcher.setObject(0, (byte) (current & (1 << 1 ^ 0xFFFFFFFF)));
+		} else if (sitting) {
 			this.dataWatcher.setObject(16, (byte) 0x1);
+		} else {
+			this.dataWatcher.setObject(16, (byte) 0x0);
+		}
+	}
+
+	public void setInvisibility(boolean invisibility) {
+		if (this.invisibility == invisibility) return;
+		this.invisibility = invisibility;
+
+		byte current = this.dataWatcher.getByte(0);
+		if (invisibility) {
+			this.dataWatcher.setObject(0, (byte) (current | 1 << 5));
+		} else {
+			this.dataWatcher.setObject(0, (byte) (current & (1 << 5 ^ 0xFFFFFFFF)));
 		}
 	}
 	

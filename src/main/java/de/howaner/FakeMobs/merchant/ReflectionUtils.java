@@ -256,6 +256,70 @@ public class ReflectionUtils {
 		}
 	}
 
+	public static Object fillProfileProperties(Object gameProfile) {
+		Class serverClass = getClassByName(getNMSPackageName() + ".MinecraftServer");
+		Class sessionServiceClass = getClassByName("com.mojang.authlib.minecraft.MinecraftSessionService");
+
+		try {
+			Object minecraftServer;
+			{
+				Method method = serverClass.getDeclaredMethod("getServer");
+				method.setAccessible(true);
+				minecraftServer = method.invoke(null);
+			}
+
+			Object sessionService;
+			{
+				Method method = serverClass.getDeclaredMethod("aC");
+				method.setAccessible(true);
+				sessionService = method.invoke(minecraftServer);
+			}
+
+			Object result;
+			{
+				Method method = sessionServiceClass.getDeclaredMethod("fillProfileProperties", gameProfile.getClass(), boolean.class);
+				method.setAccessible(true);
+				result = method.invoke(sessionService, gameProfile, true);
+			}
+
+			return result;
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			return null;
+		}
+	}
+
+	/** Return: GameProfile */
+	public static Object searchUUID(String playerName) {
+		Class serverClass = getClassByName(getNMSPackageName() + ".MinecraftServer");
+		Class userCacheClass = getClassByName(getNMSPackageName() + ".UserCache");
+
+		try {
+			Object minecraftServer;
+			{
+				Method method = serverClass.getDeclaredMethod("getServer");
+				method.setAccessible(true);
+				minecraftServer = method.invoke(null);
+			}
+
+			Object userCache;
+			{
+				Method method = serverClass.getDeclaredMethod("getUserCache");
+				method.setAccessible(true);
+				userCache = method.invoke(minecraftServer);
+			}
+
+			{
+				Method method = userCacheClass.getDeclaredMethod("getProfile", String.class);
+				method.setAccessible(true);
+				return method.invoke(userCache, playerName);
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			return null;
+		}
+	}
+
 	public static Object createNMSTextComponent(String text) {
 		if (text == null || text.isEmpty()) {
 			return null;

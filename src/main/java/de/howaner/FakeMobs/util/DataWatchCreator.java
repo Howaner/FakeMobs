@@ -31,6 +31,7 @@ public class DataWatchCreator {
 
 	public static void addEntityDefaults(WrappedDataWatcher watcher, EntityType type) {
 		// Add EntityLiving defaults:
+		watcher.setObject(0, (byte) 0); //Entity options (like invisibility)
 		watcher.setObject(7, 0); //Potion effect color
 		watcher.setObject(8, (byte) 0); //Is potion effect active?
 		watcher.setObject(9, (byte) 0); //Number of Arrows
@@ -104,7 +105,7 @@ public class DataWatchCreator {
 				break;
 			case PLAYER:
 				watcher.setObject(0, (byte) 0); //Player state (Normal, not crouched)
-				watcher.setObject(10, (byte) 0); //Skin flags
+				watcher.setObject(10, (byte) 0x7F); //Skin flags
 				watcher.setObject(16, (byte) 0); //0x02 = Hide cape
 				watcher.setObject(17, 0.0f); //Absorption hearts
 				watcher.setObject(18, 0); //Score

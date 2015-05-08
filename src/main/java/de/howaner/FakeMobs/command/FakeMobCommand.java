@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -158,6 +157,22 @@ public class FakeMobCommand implements CommandExecutor {
 			this.plugin.saveMobsFile();
 			player.sendMessage(ChatColor.GREEN + "Sitting Status changed: " + ChatColor.GRAY + ((mob.isSitting()) ? "on" : "off"));
 			return true;
+		} else if (args[0].equalsIgnoreCase("invisibility")) {
+			if (args.length < 1) return false;
+			if (!player.hasPermission("FakeMobs.invisibility")) {
+				player.sendMessage(ChatColor.RED + "No permission!");
+				return true;
+			}
+			FakeMob mob = Cache.selectedMobs.get(player);
+			if (mob == null) {
+				player.sendMessage(ChatColor.RED + "You haven't a Selection!");
+				return true;
+			}
+			mob.setInvisibility(!mob.isInvisibility());
+			mob.updateMetadata();
+			this.plugin.saveMobsFile();
+			player.sendMessage(ChatColor.GREEN + "Invisibility Status changed: " + ChatColor.GRAY + ((mob.isInvisibility()) ? "on" : "off"));
+			return true;
 		} else if (args[0].equalsIgnoreCase("look")) {
 			if (args.length < 1) return false;
 			if (!player.hasPermission("FakeMobs.look")) {
@@ -186,13 +201,29 @@ public class FakeMobCommand implements CommandExecutor {
 				player.sendMessage(ChatColor.RED + "You haven't a Selection!");
 				return true;
 			}
-			if (player.getLocation().getBlock().getType() != Material.AIR) {
-				player.sendMessage(ChatColor.RED + "You standing in a Block!");
-				return true;
-			}
 			mob.teleport(player.getLocation());
 			this.plugin.saveMobsFile();
 			player.sendMessage(ChatColor.GREEN + "Teleported Mob " + ChatColor.GRAY + "#" + mob.getId() + ChatColor.GREEN + "!");
+			return true;
+		} else if (args[0].equalsIgnoreCase("skin")) {
+			if (args.length != 2) return false;
+			if (!player.hasPermission("FakeMobs.skin")) {
+				player.sendMessage(ChatColor.RED + "No permission!");
+				return true;
+			}
+
+			FakeMob mob = Cache.selectedMobs.get(player);
+			if (mob == null) {
+				player.sendMessage(ChatColor.RED + "You don't have a selection!");
+				return true;
+			}
+			if (mob.getType() != EntityType.PLAYER) {
+				player.sendMessage(ChatColor.RED + "Only players can have a skin!");
+				return true;
+			}
+
+			FakeMobsPlugin.getPlugin().getSkinQueue().addToQueue(mob, args[1]);
+			player.sendMessage(ChatColor.GREEN + "Skin set!");
 			return true;
 		} else if (args[0].equalsIgnoreCase("inv")) {
 			if (args.length < 3) return false;
@@ -512,6 +543,7 @@ public class FakeMobCommand implements CommandExecutor {
 			player.sendMessage(ChatColor.GRAY + "/FakeMob select [id] " + ChatColor.RED + "-- " + ChatColor.WHITE + "Select a Fakemob");
 			player.sendMessage(ChatColor.GRAY + "/FakeMob name <Name/none> " + ChatColor.RED + "-- " + ChatColor.WHITE + "Give the Fakemob a name");
 			player.sendMessage(ChatColor.GRAY + "/FakeMob sitting " + ChatColor.RED + "-- " + ChatColor.WHITE + "Change the Sitting state of a pet and players (Wolf/Ocelot/Player)");
+			player.sendMessage(ChatColor.GRAY + "/FakeMob invisibility " + ChatColor.RED + "-- " + ChatColor.WHITE + "Make the fakemob invisibility");
 			player.sendMessage(ChatColor.GRAY + "/FakeMob look " + ChatColor.RED + "-- " + ChatColor.WHITE + "Enable/Disable the Players Look");
 			player.sendMessage(ChatColor.GRAY + "/FakeMob teleport " + ChatColor.RED + "-- " + ChatColor.WHITE + "Teleport a Fakemob to you");
 			player.sendMessage(ChatColor.GRAY + "/FakeMob inv <hand/boots/leggings/chestplate/helmet> <Item> " + ChatColor.RED + "-- " + ChatColor.WHITE + "Set the Inventory of a Fakemob. Use none to delete.");
@@ -525,6 +557,7 @@ public class FakeMobCommand implements CommandExecutor {
 			player.sendMessage(ChatColor.GRAY + "/FakeMob interact remove <ID> " + ChatColor.RED + "-- " + ChatColor.WHITE + "Remove Interact Action");
 			player.sendMessage(ChatColor.GRAY + "/FakeMob interact list " + ChatColor.RED + "-- " + ChatColor.WHITE + "List all Interact Actions from the Mob");
 			player.sendMessage(ChatColor.GRAY + "/FakeMob interact clear " + ChatColor.RED + "-- " + ChatColor.WHITE + "Remove all Interact Actions from the Mob");
+			player.sendMessage(ChatColor.GRAY + "/FakeMob skin <Playername> " + ChatColor.RED + "-- " + ChatColor.WHITE + "Set the skin for a player fakemob");
 			player.sendMessage(ChatColor.GRAY + "/FakeMob remove " + ChatColor.RED + "-- " + ChatColor.WHITE + "Remove a Fakemob");
 			return true;
 		} else
