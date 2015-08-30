@@ -270,7 +270,12 @@ public class ReflectionUtils {
 
 			Object sessionService;
 			{
-				Method method = serverClass.getDeclaredMethod("aC");
+				String methodName;
+				if (existsMethod(serverClass, "aC", sessionServiceClass))
+					methodName = "aC"; //1.8.3
+				else
+					methodName = "aD"; //1.8.8
+				Method method = serverClass.getDeclaredMethod(methodName);
 				method.setAccessible(true);
 				sessionService = method.invoke(minecraftServer);
 			}
@@ -287,6 +292,15 @@ public class ReflectionUtils {
 			ex.printStackTrace();
 			return null;
 		}
+	}
+
+	private static boolean existsMethod(Class clazz, String methodName, Class returnClass) {
+		for (Method method : clazz.getDeclaredMethods()) {
+			if (method.getName().equals(methodName) && method.getGenericReturnType() == returnClass) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/** Return: GameProfile */

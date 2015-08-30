@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.howaner</groupId>
 	<artifactId>FakeMobs</artifactId>
-	<version>1.8.9</version>
+	<version>1.9.0</version>
 	<name>FakeMobs</name>
 	<description>A simple npc plugin</description>
 	<packaging>jar</packaging>
