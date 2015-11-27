@@ -3,12 +3,9 @@ package de.howaner.FakeMobs.util;
 import de.howaner.FakeMobs.merchant.Merchant;
 import de.howaner.FakeMobs.merchant.MerchantOffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 
 public class MobShop {
 	private List<MerchantOffer> items = new ArrayList<MerchantOffer>();
@@ -30,8 +27,7 @@ public class MobShop {
 	}
 	
 	public void addItems(MerchantOffer... items) {
-		for (MerchantOffer item : items)
-			this.items.add(item);
+		this.items.addAll(Arrays.asList(items));
 	}
 	
 	public void addItem(MerchantOffer item) {
