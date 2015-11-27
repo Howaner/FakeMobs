@@ -3,6 +3,7 @@ package de.howaner.FakeMobs.util;
 import de.howaner.FakeMobs.merchant.Merchant;
 import de.howaner.FakeMobs.merchant.MerchantOffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.bukkit.entity.Player;
 
@@ -26,8 +27,7 @@ public class MobShop {
 	}
 	
 	public void addItems(MerchantOffer... items) {
-		for (MerchantOffer item : items)
-			this.items.add(item);
+		this.items.addAll(Arrays.asList(items));
 	}
 	
 	public void addItem(MerchantOffer item) {
