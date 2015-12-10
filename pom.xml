@@ -17,8 +17,8 @@
 			<url>https://hub.spigotmc.org/nexus/content/groups/public/</url>
 		</repository>
 		<repository>
-			<id>Rennschnitzel Repository</id>
-			<url>http://repo.rennschnitzel.de:8081/nexus/content/repositories/public/</url>
+			<id>dmulloy2-repo</id>
+			<url>http://repo.dmulloy2.net/content/groups/public/</url>
 		</repository>
 	</repositories>
 	
@@ -76,7 +76,7 @@
 		<dependency>
 			<groupId>com.comphenix.protocol</groupId>
 			<artifactId>ProtocolLib</artifactId>
-			<version>3.6.3</version>
+			<version>3.6.4</version>
 		</dependency>
 	</dependencies>
 </project>
