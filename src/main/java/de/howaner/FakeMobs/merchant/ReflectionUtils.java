@@ -39,6 +39,10 @@ public class ReflectionUtils {
 				return null;
 			}
 		}
+
+		public static Object getEmptyItemStack() {
+			return asNMSCopy(null);
+		}
 		
 	}
 	
@@ -107,6 +111,9 @@ public class ReflectionUtils {
 		}
 		
 		public NMSMerchantRecipe(Object item1, Object item2, Object item3) {
+			if (item2 == null)
+				item2 = OBCCraftItemStack.getEmptyItemStack();
+
 			try {
 				Class isClass = ReflectionUtils.getClassByName(ReflectionUtils.getNMSPackageName() + ".ItemStack");
 				this.merchantRecipe = getNMSClass().getDeclaredConstructor(isClass, isClass, isClass).newInstance(item1, item2, item3);

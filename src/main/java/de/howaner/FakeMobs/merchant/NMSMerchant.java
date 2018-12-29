@@ -16,9 +16,9 @@ public class NMSMerchant implements java.lang.reflect.InvocationHandler {
 		try {
 			if (m == null || m.getName() == null) return null;
 			Class entityHuman = ReflectionUtils.getClassByName(ReflectionUtils.getNMSPackageName() + ".EntityHuman");
-			if (m.getName().equals("a_") && args.length == 1 && args[0] != null && args[0].getClass().isInstance(entityHuman))
+			if ((m.getName().equals("a_") || m.getName().equals("setTradingPlayer")) && args.length == 1 && args[0] != null && args[0].getClass().isInstance(entityHuman))  // a_ = Spigot 1.8, setTradingPlayer = Spigot 1.13
 				this.a_(args[0]);
-			else if (m.getName().equals("b") || m.getName().equals("m_") || m.getName().equals("u_") || m.getName().equals("v_")) //m_ = 1.6.4, b = 1.7.4, u_ = Spigot 1.8, v_ = Spigot 1.8.3
+			else if (m.getName().equals("b") || m.getName().equals("m_") || m.getName().equals("u_") || m.getName().equals("v_") || m.getName().equals("getTrader")) //m_ = 1.6.4, b = 1.7.4, u_ = Spigot 1.8, v_ = Spigot 1.8.3, getTrader = Spigot 1.13
 				return this.getEntityHuman();
 			else if (m.getName().equals("getOffers") && args.length == 1)
 				return this.getOffers(args[0]);
